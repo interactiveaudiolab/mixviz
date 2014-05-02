@@ -60,7 +60,7 @@ MainWindow::MainWindow ()
     if (audioIODevice->isOpen())
     {
         textEditor->insertTextAtCaret("Audio device is open\n");
-        //audioIODevice->start(visualizer);
+        audioIODevice->start(visualizer);
     } else {
         textEditor->insertTextAtCaret("Error, could not start Jack audio device.\n");
     }

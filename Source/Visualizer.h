@@ -16,6 +16,7 @@
 //==============================================================================
 /*
 */
+
 class Visualizer    : public Component,
                       public AudioIODeviceCallback,
                       private Timer
@@ -34,10 +35,14 @@ public:
 
 private:
     float samples[1024];
+    float fftSamples[2][1024];
+    int bufferSize;
+    int numActiveChannels;
     int nextSample, subSample;
     float accumulator;
-    StringArray inputChannelNames;
-    StringArray outputChannelNames;
+    ScopedPointer<drow::FFTEngine> fft;
+    BigInteger activeInputChannels;
+
     void clear();
     void timerCallback() override;
     void pushSample(const float newSample);
