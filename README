@@ -1,1 +1,31 @@
-A standalone music visualizer
+MixVis
+====================
+
+
+ABOUT
+====================
+A standalone mixing visualizer. Let me know if you have suggestions for a better name please. Recieves audio in via JACK server and displays it.
+
+Currently only working on Linux.
+
+
+PREREQUISITES
+====================
+- JACK Audio Connection Kit (http://jackaudio.org/)
+- FFTW3 fft libraries (http://www.fftw.org/)
+
+
+INSTALLATION
+====================
+1. Pull down the code from repository
+2. Go into the Builds/Linux directory and run make
+3. The executable MixVis should now be in Builds/Linux/build
+
+
+USING THE VISUALIZER
+====================
+1. Make sure jack server is running and is in realtime mode ("jackd -R -dalsa" is what I have been using)
+2. Start up the visualizer (./Builds/Linux/build/Mixvis). It is important to do this BEFORE starting any other applications that use JACK because the visualizer is not yet smart about which JACK device it connects to (it chooses the last one that it finds currently running on the system)
+3. Start up your third party audio application. You must do this AFTER starting the visualizer (see previous step for explanation)
+4. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK".
+5. Now it should work!

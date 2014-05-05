@@ -104,7 +104,7 @@ namespace
 
 //==============================================================================
 #ifndef JUCE_JACK_CLIENT_NAME
- #define JUCE_JACK_CLIENT_NAME "JUCEDemoClient"
+ #define JUCE_JACK_CLIENT_NAME "MixVisJACK"
 #endif
 
 struct JackPortIterator
