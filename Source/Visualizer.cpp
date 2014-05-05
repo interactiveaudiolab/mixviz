@@ -10,21 +10,24 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Visualizer.h"
+#include <fftw3.h>
+#include <math.h>
 
 //==============================================================================
 Visualizer::Visualizer()
-    : nextSample (0), subSample (0), accumulator (0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-    setOpaque (true);
+    //
+    setOpaque(true);
     clear();
-    startTimer (1000/75);
-    fft = new drow::FFTEngine (1024);
+    startTimer(1000/75);
+    fft = fftw_plan_dft_r2c_1d(1024, inputSamples, fftComplex, FFTW_MEASURE);
 }
 
 Visualizer::~Visualizer()
-{
+{    
+    fftw_destroy_plan(fft);
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -32,6 +35,7 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     activeInputChannels = device->getActiveInputChannels();
     bufferSize = 1024; //device->getCurrentBufferSizeSamples();
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
+    fs = device->getCurrentSampleRate();
 }
 
 void Visualizer::audioDeviceStopped()
@@ -45,48 +49,39 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
     // for each channel, analyze!
     for (int chan = 0; chan < numInputChannels; ++chan)
     {
+        // copy input data into our fft sample buffer
         for (int i = 0; i < numSamples; ++i)
         {
-            fftSamples[j][i] = inputChannelData[j][i];
+            inputSamples[i] = (double) inputChannelData[chan][i];
         }
-        fft->performFFT(fftSamples[chan]);
 
-    }
-
-    for (int i = 0; i < numSamples; ++i)
-    {
-        float inputSample = 0;
-
-        for (int chan = 0; chan < numInputChannels; ++chan)
+        // perform the FFT and fill the fftData Buffer with the magnitudes
+        fftw_execute(fft);
+        for (int i=0; i < 513; ++i)
         {
-            fft->performFFT(fftSamples[chan]);
-            if (inputChannelData[chan] != nullptr)
-            {
-                inputSample += std::abs (inputChannelData[chan][i]);  // find the sum of all the channels
-            }
+            const double magnitude = sqrt(pow(fftComplex[i][0],2.0f) + pow(fftComplex[i][1],2.0f));
+            fftData[i] = magnitude;
         }
-
-        pushSample (10.0f * inputSample); // boost the level to make it more easily visible.
     }
-        // We need to clear the output buffers before returning, in case they're full of junk..
-        for (int j = 0; j < numOutputChannels; ++j)
-            if (outputChannelData[j] != nullptr)
-                zeromem (outputChannelData[j], sizeof (float) * (size_t) numSamples);
+
+    // We need to clear the output buffers before returning, in case they're full of junk..
+    for (int j = 0; j < numOutputChannels; ++j)
+        if (outputChannelData[j] != nullptr)
+            zeromem (outputChannelData[j], sizeof (float) * (size_t) numSamples);
 }
 
 void Visualizer::paint (Graphics& g)
 {
 
     g.fillAll (Colours::black);   // clear the background
-    const float midY = getHeight() * 0.5f;
-    int samplesAgo = (nextSample + numElementsInArray (samples) - 1);
+    const float y = getHeight();
 
     RectangleList<float> waveform;
 
-    for (int x = jmin (getWidth(), (int) numElementsInArray (samples)); --x >= 0;)
+    for (int x = jmin (getWidth(), numElementsInArray(fftData)); --x >= 0;)
     {
-        const float sampleSize = midY * samples [samplesAgo-- % numElementsInArray (samples)];
-        waveform.addWithoutMerging (Rectangle<float> ((float) x, midY - sampleSize, 1.0f, sampleSize * 2.0f));
+        float freqIntensity = (float) fftData[x]*50.0f;
+        waveform.addWithoutMerging (Rectangle<float> ((float) x, 0.0f, 1.0f, jmin(y, freqIntensity)));
     }
 
     g.setColour (Colours::lightgreen);
@@ -97,36 +92,13 @@ void Visualizer::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-
 }
 
 void Visualizer::clear()
 {
-    zeromem (samples, sizeof (samples));
-    accumulator = 0;
-    subSample = 0;
 }
 
 void Visualizer::timerCallback()
 {
     repaint();
-}
-
-void Visualizer::pushSample(const float newSample)
-{
-    accumulator += newSample;
-
-    if (subSample == 0)
-    {
-        const int inputSamplesPerPixel = 200;
-
-        samples[nextSample] = accumulator / inputSamplesPerPixel;
-        nextSample = (nextSample + 1) % numElementsInArray (samples);
-        subSample = inputSamplesPerPixel;
-        accumulator = 0;
-    }
-    else
-    {
-        --subSample;
-    }
 }

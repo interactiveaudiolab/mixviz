@@ -12,6 +12,7 @@
 #define VISUALIZER_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include <fftw3.h>
 
 //==============================================================================
 /*
@@ -34,18 +35,19 @@ public:
                                 int numSamples) override;
 
 private:
-    float samples[1024];
-    float fftSamples[2][1024];
+    double inputSamples[1024];
+    fftw_complex fftComplex[1026];
+    double fftData[513];
+    fftw_plan fft;
+
+    
+    double fs;
     int bufferSize;
     int numActiveChannels;
-    int nextSample, subSample;
-    float accumulator;
-    ScopedPointer<drow::FFTEngine> fft;
     BigInteger activeInputChannels;
 
     void clear();
     void timerCallback() override;
-    void pushSample(const float newSample);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

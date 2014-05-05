@@ -13,7 +13,8 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <LINUX_MAKE targetFolder="Builds/Linux" extraCompilerFlags="">
+    <LINUX_MAKE targetFolder="Builds/Linux" extraCompilerFlags="" extraLinkerFlags="-lfftw3&#10;-lm"
+                externalLibraries="">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
                        targetName="MixVis"/>
@@ -34,13 +35,11 @@
         <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
         <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
-        <MODULEPATH id="dRowAudio" path="../JUCE/modules"/>
         <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULES id="dRowAudio" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
     <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
