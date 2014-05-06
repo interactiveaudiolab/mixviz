@@ -1,5 +1,8 @@
+# ignore the main build file
+Build/Linux/MixVis
+
+# ignore intermediate object build files
+Build/Linux/intermediate/*
+
 # ignore .swp files
 *.swp
-
-# ignore .o files
-*.o
