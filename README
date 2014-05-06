@@ -34,5 +34,5 @@ it connects to (it chooses the last one that it finds currently running on the s
 3. Start up your third party audio application. You must do this AFTER starting the visualizer (see
 previous step for explanation)
 4. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your
-third party application should be routed to the inputs on the device "MixVisJACK".
+third party application should be routed to the inputs on the device "MixVisJACK". Currently only a SINGLE stereo track is supported.
 5. Now it should work!

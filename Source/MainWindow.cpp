@@ -56,7 +56,7 @@ MainWindow::MainWindow ()
 	}
 	
 	addAndMakeVisible (visualizer = new Visualizer());
-    audioIODevice->open(BigInteger(4),BigInteger(4),48000,1024);
+    audioIODevice->open(BigInteger(3),BigInteger(3),48000,1024);
     if (audioIODevice->isOpen())
     {
         textEditor->insertTextAtCaret("Audio device is open\n");
@@ -102,7 +102,7 @@ void MainWindow::resized()
 {
     textEditor->setBounds (0, 0, 600, 90);
     //[UserResized] Add your own custom resize handling here..
-    visualizer->setBounds(0,100,600,500);
+    visualizer->setBounds(0,100,600,600);
     //[/UserResized]
 }
 
