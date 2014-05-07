@@ -19,7 +19,7 @@ Visualizer::Visualizer()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setOpaque(true);
-    startTimer(1000/75);
+    startTimer(1000/30);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
@@ -101,15 +101,23 @@ void Visualizer::paint (Graphics& g)
 {
 
     g.fillAll (Colours::black);   // clear the background
+    const float height = (float) getHeight();
+    const float width = (float) getWidth();
+    const float maxXIndex = 128.0f;
+    const float maxYIndex = 513.0f;
 
     RectangleList<float> waveform;
 
-    for (int x = 0; x < 128; ++x)
+    for (int x = 0; x < (int)maxXIndex; ++x)
     {
-        for (int y = 0; y < 513; ++y)
+        for (int y = 0; y < (int)maxYIndex; ++y)
         {
-            if (maskingInputs[x][y] > 0)
-                waveform.addWithoutMerging (Rectangle<float> ((float) x, (float) y, 1.0f, 1.0f));
+            if (maskingInputs[x][y] > 0) 
+            {
+                const float xf = (float) x;
+                const float yf = (float) y;
+                waveform.addWithoutMerging (Rectangle<float> (xf/maxXIndex*width, (maxYIndex-yf)/maxYIndex*height, 1.0f, 1.0f));
+            }
         }
     }
 
