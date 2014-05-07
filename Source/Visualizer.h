@@ -50,26 +50,34 @@ private:
     double fftMagnitudesR[513];
     double fftMagnitudesStereo[513];
 
+    // temporary constants
+    const int numSpatialBins;
+    const int numFreqBins;
+
     // fft plans
     fftw_plan fftL;
     fftw_plan fftR;
     fftw_plan fftStereo;
     
     // masking model inputs and outputs
-    double maskingInputs[128][513];
-    double maskingOutputs[128][513];
+    double maskingInput[128][513];
+    double maskingOutput[128][513];
+
+    // functions to clear masking model buffers
+    void clearMaskingInput();
+    void clearMaskingOutput();
     
     double fs;
     int bufferSize;
     int numActiveChannels;
     BigInteger activeInputChannels;
 
-    void clear();
     void timerCallback() override;
 
     // useful helper functions
     int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
     int calculateFreqBin(const int freq);
+    void runMaskingModel();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

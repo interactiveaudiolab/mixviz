@@ -15,11 +15,13 @@
 
 //==============================================================================
 Visualizer::Visualizer()
+    :   numSpatialBins(128),
+        numFreqBins(513)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setOpaque(true);
-    startTimer(1000/30);
+    startTimer(1000/75);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
@@ -39,7 +41,8 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     activeInputChannels = device->getActiveInputChannels();
     bufferSize = 1024; //device->getCurrentBufferSizeSamples();
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
-    clear();
+    clearMaskingInput();
+    clearMaskingOutput();
     fs = device->getCurrentSampleRate();
 }
 
@@ -47,14 +50,13 @@ void Visualizer::audioDeviceStopped()
 {
 }
 
-
 // this function happens each time audio data is recieved
 void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numInputChannels,
                                         float** outputChannelData, int numOutputChannels,
                                         int numSamples)
 {
-    // clear the input and output buffers
-    clear();
+    // clear the input buffer
+    clearMaskingInput();
 
     // for each stereo track, analyze!
     for (int track = 0; track < numInputChannels/2; ++track)
@@ -86,7 +88,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             // calculate spatial/frequency positions and update buffer
             const int freqBin = calculateFreqBin(freq);
             const int spatialBin = calculateSpatialBin(magnitudeL,magnitudeR);
-            maskingInputs[spatialBin][freqBin] = magnitudeStereo;
+            maskingInput[spatialBin][freqBin] = magnitudeStereo;
         }
     }
 
@@ -99,20 +101,22 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
+    // run the masking model
+    runMaskingModel();
 
     g.fillAll (Colours::black);   // clear the background
     const float height = (float) getHeight();
     const float width = (float) getWidth();
-    const float maxXIndex = 128.0f;
-    const float maxYIndex = 513.0f;
-
+    const float maxXIndex = (float) numSpatialBins;
+    const float maxYIndex = (float) numFreqBins;
+    
     RectangleList<float> waveform;
 
-    for (int x = 0; x < (int)maxXIndex; ++x)
+    for (int x = 0; x < numSpatialBins; ++x)
     {
-        for (int y = 0; y < (int)maxYIndex; ++y)
+        for (int y = 0; y < numFreqBins; ++y)
         {
-            if (maskingInputs[x][y] > 0) 
+            if (maskingOutput[x][y] > 0) 
             {
                 const float xf = (float) x;
                 const float yf = (float) y;
@@ -131,17 +135,28 @@ void Visualizer::resized()
     // components that your component contains..
 }
 
-void Visualizer::clear()
+void Visualizer::clearMaskingInput()
 {
-    for (int x = 0; x < 128; ++x)
+    for (int x = 0; x < numSpatialBins; ++x)
     {
-        for (int y = 0; y < 513; ++y)
+        for (int y = 0; y < numFreqBins; ++y)
         {
-            maskingInputs[x][y]=0;
-            maskingOutputs[x][y]=0;
+            maskingInput[x][y]=0;
         }
     }
 }
+
+void Visualizer::clearMaskingOutput()
+{
+    for (int x = 0; x < numSpatialBins; ++x)
+    {
+        for (int y = 0; y < numFreqBins; ++y)
+        {   
+            maskingOutput[x][y]=0;
+        }
+    }
+}
+    
 
 void Visualizer::timerCallback()
 {
@@ -176,4 +191,15 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
 int Visualizer::calculateFreqBin(const int freq)
 {
     return freq;
+}
+
+void Visualizer::runMaskingModel()
+{
+    for (int loc = 0; loc < numSpatialBins; ++loc)
+    {
+        for (int freq = 0; freq < numFreqBins; ++freq)
+        {
+            maskingOutput[loc][freq] = maskingInput[loc][freq];
+        }
+    }
 }
