@@ -21,7 +21,7 @@ Visualizer::Visualizer()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setOpaque(true);
-    startTimer(1000/75);
+    startTimer(1000/30);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
@@ -38,12 +38,14 @@ Visualizer::~Visualizer()
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
 {
+    // get info about the audio device we are connected to
     activeInputChannels = device->getActiveInputChannels();
     bufferSize = 1024; //device->getCurrentBufferSizeSamples();
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
+    fs = device->getCurrentSampleRate();
+
     clearMaskingInput();
     clearMaskingOutput();
-    fs = device->getCurrentSampleRate();
 }
 
 void Visualizer::audioDeviceStopped()
@@ -91,7 +93,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             maskingInput[spatialBin][freqBin] = magnitudeStereo;
         }
     }
-
+    
     // We need to clear the output buffers before returning, in case they're full of junk..
     for (int j = 0; j < numOutputChannels; ++j)
         if (outputChannelData[j] != nullptr)
@@ -137,22 +139,22 @@ void Visualizer::resized()
 
 void Visualizer::clearMaskingInput()
 {
-    for (int x = 0; x < numSpatialBins; ++x)
+    for (int loc = 0; loc < numSpatialBins; ++loc)
     {
-        for (int y = 0; y < numFreqBins; ++y)
+        for (int freq = 0; freq < numFreqBins; ++freq)
         {
-            maskingInput[x][y]=0;
+            maskingInput[loc][freq] = 0;
         }
     }
 }
 
 void Visualizer::clearMaskingOutput()
 {
-    for (int x = 0; x < numSpatialBins; ++x)
+    for (int loc = 0; loc < numSpatialBins; ++loc)
     {
-        for (int y = 0; y < numFreqBins; ++y)
+        for (int freq = 0; freq < numFreqBins; ++freq)
         {   
-            maskingOutput[x][y]=0;
+            maskingOutput[loc][freq]=0;
         }
     }
 }
@@ -163,6 +165,7 @@ void Visualizer::timerCallback()
     repaint();
 }
 
+// given the magnitude of left and right channels, this function returns the correct spatial bin
 int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitudeR)
 {
     // calculate ratios between the two channels
@@ -188,18 +191,57 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
     }
 }
 
+// this function returns the correct ERB frequency bin given a fft bin number
 int Visualizer::calculateFreqBin(const int freq)
 {
     return freq;
 }
 
+// executes the masking model on inputs
 void Visualizer::runMaskingModel()
 {
+    // run each masking model
+    calculateFreqMasking();
+    calculateSpatialMasking();
+
+    // place the output into the output buffer
     for (int loc = 0; loc < numSpatialBins; ++loc)
     {
         for (int freq = 0; freq < numFreqBins; ++freq)
         {
             maskingOutput[loc][freq] = maskingInput[loc][freq];
         }
+    }
+}
+
+void Visualizer::calculateFreqMasking()
+{
+    for (int col = 0; col < numSpatialBins; ++col)
+    {
+        // put the column in a buffer
+        for (int row = 0; row < numFreqBins; ++row)
+            colBuffer[row] = maskingInput[col][row];
+        
+        // call convolution function on the buffer
+
+        // place buffer back into the column
+        for (int row = 0; row < numFreqBins; ++row)
+            maskingInput[col][row] = colBuffer[row];
+    }
+}
+
+void Visualizer::calculateSpatialMasking()
+{
+    for (int row = 0; row < numFreqBins; ++row)
+    {
+        // put the row in a buffer
+        for (int col = 0; col < numSpatialBins; ++col)
+            rowBuffer[col] = maskingInput[col][row];
+        
+        // call convolution function on the buffer
+
+        // place buffer back into the row
+        for (int col = 0; col < numSpatialBins; ++col)
+            maskingInput[col][row] = rowBuffer[col];
     }
 }

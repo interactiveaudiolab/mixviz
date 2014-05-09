@@ -59,14 +59,23 @@ private:
     fftw_plan fftR;
     fftw_plan fftStereo;
     
-    // masking model inputs and outputs
+    // masking model input and output buffers
     double maskingInput[128][513];
+    double prevMaskingInput[128][513];
     double maskingOutput[128][513];
 
-    // functions to clear masking model buffers
+    // dummy convolution model
+    double gaussian[11];
+
+    // functions to clear masking model input and output buffers
     void clearMaskingInput();
     void clearMaskingOutput();
+
+    // other buffers used in masking models
+    double colBuffer[513];
+    double rowBuffer[128];
     
+    // info about the audio device this component is recieving input from
     double fs;
     int bufferSize;
     int numActiveChannels;
@@ -78,6 +87,8 @@ private:
     int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
     int calculateFreqBin(const int freq);
     void runMaskingModel();
+    void calculateFreqMasking();
+    void calculateSpatialMasking();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };
