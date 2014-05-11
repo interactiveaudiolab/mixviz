@@ -12,6 +12,9 @@
 #include "Visualizer.h"
 #include <fftw3.h>
 #include <math.h>
+#include <stdio.h>
+
+using namespace std;
 
 //==============================================================================
 Visualizer::Visualizer()
@@ -27,6 +30,12 @@ Visualizer::Visualizer()
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
     fftR = fftw_plan_dft_r2c_1d(1024, fftInputR, fftOutputR, FFTW_MEASURE);
     fftStereo = fftw_plan_dft_r2c_1d(1024, fftInputStereo, fftOutputStereo, FFTW_MEASURE);
+
+    //initialize gaussain
+    for (int i = -5; i < 6; ++i)
+    {
+        gaussian[i+5] = exp(pow((float)i,2.0f)/-2.0f);
+    } 
 }
 
 Visualizer::~Visualizer()
@@ -93,6 +102,8 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             maskingInput[spatialBin][freqBin] = magnitudeStereo;
         }
     }
+
+    runMaskingModel();
     
     // We need to clear the output buffers before returning, in case they're full of junk..
     for (int j = 0; j < numOutputChannels; ++j)
@@ -103,32 +114,29 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    // run the masking model
-    runMaskingModel();
 
     g.fillAll (Colours::black);   // clear the background
     const float height = (float) getHeight();
     const float width = (float) getWidth();
     const float maxXIndex = (float) numSpatialBins;
     const float maxYIndex = (float) numFreqBins;
-    
-    RectangleList<float> waveform;
 
     for (int x = 0; x < numSpatialBins; ++x)
     {
         for (int y = 0; y < numFreqBins; ++y)
         {
-            if (maskingOutput[x][y] > 0) 
+            const float intensity = (float) maskingOutput[x][y];
+            //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
+            if (intensity > 0) 
             {
                 const float xf = (float) x;
                 const float yf = (float) y;
-                waveform.addWithoutMerging (Rectangle<float> (xf/maxXIndex*width, (maxYIndex-yf)/maxYIndex*height, 1.0f, 1.0f));
+                const Colour colour = Colour(0.5f, intensity*200.0f, 1.0f, 1.0f);
+                g.setColour(colour);
+                g.fillRect(Rectangle<float>(xf/maxXIndex*width, (maxYIndex-yf)/maxYIndex*height, 2.0f, 2.0f));
             }
         }
     }
-
-    g.setColour (Colours::lightgreen);
-    g.fillRectList (waveform);
 }
 
 void Visualizer::resized()
@@ -172,7 +180,7 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
     if (magnitudeL == 0)
     {
         // signal is all the way on the right 
-        return 127;
+        return numSpatialBins-1;
     }
     else if (magnitudeR == 0)
     {
@@ -216,17 +224,30 @@ void Visualizer::runMaskingModel()
 
 void Visualizer::calculateFreqMasking()
 {
+    // calculate the masking for each column
     for (int col = 0; col < numSpatialBins; ++col)
     {
         // put the column in a buffer
         for (int row = 0; row < numFreqBins; ++row)
-            colBuffer[row] = maskingInput[col][row];
+        {
+            // if this position is greater than 0, perform convolution
+            if (maskingInput[col][row] > 0)
+            {
+                for (int idx = 0; idx < 11; ++idx)
+                {
+                    const int j = row-5+idx;
+                    if (j > 0 && j < numFreqBins)
+                        colBuffer[j] += gaussian[idx]*maskingInput[col][j];
+                }
+            }
+        }
         
-        // call convolution function on the buffer
-
-        // place buffer back into the column
+        // place buffer back into the column and clear buffer
         for (int row = 0; row < numFreqBins; ++row)
+        {
             maskingInput[col][row] = colBuffer[row];
+            colBuffer[row]=0;
+        }
     }
 }
 
