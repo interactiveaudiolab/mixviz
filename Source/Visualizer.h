@@ -35,7 +35,7 @@ public:
                                 int numSamples) override;
 
 private:
-    // fft input arraysreal arrays containing samples
+    // fft input arrays: real arrays containing audio samples
     double fftInputL[1024];
     double fftInputR[1024];
     double fftInputStereo[1024];
@@ -44,11 +44,6 @@ private:
     fftw_complex fftOutputL[513];
     fftw_complex fftOutputR[513];
     fftw_complex fftOutputStereo[513];
-
-    // magnitudes version of the fft output arrays
-    double fftMagnitudesL[513];
-    double fftMagnitudesR[513];
-    double fftMagnitudesStereo[513];
 
     // temporary constants
     const int numSpatialBins;

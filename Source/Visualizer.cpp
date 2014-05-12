@@ -78,24 +78,20 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
         {
             fftInputL[i] = (double) inputChannelData[2*track][i];
             fftInputR[i] = (double) inputChannelData[2*track+1][i];
-            fftInputStereo[i]=fftInputL[i]+fftInputR[i];
+            //fftInputStereo[i]=fftInputL[i]+fftInputR[i];
         }
 
         // perform all the FFTs and calculate magnitudes, spatial/frequency positions
         fftw_execute(fftL);
         fftw_execute(fftR);
-        fftw_execute(fftStereo);
+        //fftw_execute(fftStereo);
         for (int freq=0; freq < 513; ++freq)
         {
             // calculate magnitudes
             const double magnitudeL = sqrt(pow(fftOutputL[freq][0],2.0f) + pow(fftOutputL[freq][1],2.0f));
             const double magnitudeR = sqrt(pow(fftOutputR[freq][0],2.0f) + pow(fftOutputR[freq][1],2.0f));
-            const double magnitudeStereo = sqrt(pow(fftOutputStereo[freq][0],2.0f) + pow(fftOutputStereo[freq][1],2.0f));
-
-            // update buffers
-            fftMagnitudesL[freq] = magnitudeL;
-            fftMagnitudesR[freq] = magnitudeR;
-            fftMagnitudesStereo[freq] = magnitudeStereo;
+            const double magnitudeStereo = magnitudeL + magnitudeR;
+            //const double magnitudeStereo = sqrt(pow(fftOutputStereo[freq][0],2.0f) + pow(fftOutputStereo[freq][1],2.0f));
 
             // calculate spatial/frequency positions and update buffer
             const int freqBin = calculateFreqBin(freq);
