@@ -65,7 +65,8 @@ private:
     double maskingOutput[128][513];
 
     // dummy convolution model
-    double gaussian[11];
+    double freqGaussian[11];
+    double spatialGaussian[11];
 
     // functions to clear masking model input and output buffers
     void clearMaskingInput();
@@ -74,6 +75,8 @@ private:
     // other buffers used in masking models
     double colBuffer[513];
     double rowBuffer[128];
+    double freqConvBuffer[523]; // 523 + 11 - 1
+    double spatialConvBuffer[138]; // 128 + 11 - 1
     
     // info about the audio device this component is recieving input from
     double fs;

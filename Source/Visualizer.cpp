@@ -34,7 +34,8 @@ Visualizer::Visualizer()
     //initialize gaussain
     for (int i = -5; i < 6; ++i)
     {
-        gaussian[i+5] = exp(pow((float)i,2.0f)/-2.0f);
+        freqGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
+        spatialGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
     } 
 }
 
@@ -116,10 +117,14 @@ void Visualizer::paint (Graphics& g)
 {
 
     g.fillAll (Colours::black);   // clear the background
-    const float height = (float) getHeight();
-    const float width = (float) getWidth();
+    const float winHeight = (float) getHeight();
+    const float winWidth = (float) getWidth();
     const float maxXIndex = (float) numSpatialBins;
     const float maxYIndex = (float) numFreqBins;
+    const float binHeight = winHeight / maxYIndex;
+    const float binWidth = winWidth / maxXIndex;
+    const float yOffset = binHeight / 2.0f;
+    const float xOffset = binWidth / 2.0f;
 
     for (int x = 0; x < numSpatialBins; ++x)
     {
@@ -127,13 +132,16 @@ void Visualizer::paint (Graphics& g)
         {
             const float intensity = (float) maskingOutput[x][y];
             //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
-            if (intensity > 0) 
+            if (intensity > 0.0f) 
             {
                 const float xf = (float) x;
                 const float yf = (float) y;
-                const Colour colour = Colour(0.5f, intensity*200.0f, 1.0f, 1.0f);
+                const Colour colour = Colour(0.5f, intensity, 1.0f, 1.0f);
                 g.setColour(colour);
-                g.fillRect(Rectangle<float>(xf/maxXIndex*width, (maxYIndex-yf)/maxYIndex*height, 2.0f, 2.0f));
+                g.fillRect(Rectangle<float> (xf / maxXIndex * winWidth - xOffset,
+                                            (maxYIndex - yf) / maxYIndex * winHeight - yOffset,
+                                            binWidth,
+                                            binHeight));
             }
         }
     }
@@ -200,9 +208,10 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
 }
 
 // this function returns the correct ERB frequency bin given a fft bin number
-int Visualizer::calculateFreqBin(const int freq)
+int Visualizer::calculateFreqBin(const int freqBin)
 {
-    return freq;
+    const double freq = (double) freqBin * fs;
+    return freqBin;
 }
 
 // executes the masking model on inputs
@@ -211,6 +220,7 @@ void Visualizer::runMaskingModel()
     // run each masking model
     calculateFreqMasking();
     calculateSpatialMasking();
+    //calculateFreqMasking();
 
     // place the output into the output buffer
     for (int loc = 0; loc < numSpatialBins; ++loc)
@@ -237,7 +247,7 @@ void Visualizer::calculateFreqMasking()
                 {
                     const int j = row-5+idx;
                     if (j > 0 && j < numFreqBins)
-                        colBuffer[j] += gaussian[idx]*maskingInput[col][j];
+                        colBuffer[j] += freqGaussian[idx]*maskingInput[col][j];
                 }
             }
         }
@@ -257,12 +267,24 @@ void Visualizer::calculateSpatialMasking()
     {
         // put the row in a buffer
         for (int col = 0; col < numSpatialBins; ++col)
-            rowBuffer[col] = maskingInput[col][row];
-        
-        // call convolution function on the buffer
+        {
+            // if this position is greater than 0, perform convolution
+            if (maskingInput[col][row] > 0)
+            {
+                for (int idx = 0; idx < 11; ++idx)
+                {
+                    const int j = col-5+idx;
+                    if (j > 0 && j < numSpatialBins)
+                        rowBuffer[j] += spatialGaussian[idx]*maskingInput[col][j];
+                }
+            }
+        }
 
         // place buffer back into the row
         for (int col = 0; col < numSpatialBins; ++col)
+        {
             maskingInput[col][row] = rowBuffer[col];
+            rowBuffer[col] = 0;
+        }
     }
 }
