@@ -45,6 +45,10 @@ private:
     fftw_complex fftOutputR[513];
     fftw_complex fftOutputStereo[513];
 
+    // fft output with phase info removed
+    double fftMagnitudesL[513];
+    double fftMagnitudesR[513];
+
     // temporary constants
     const int numSpatialBins;
     const int numFreqBins;
@@ -55,12 +59,12 @@ private:
     fftw_plan fftStereo;
     
     // masking model input and output buffers
-    double maskingInput[128][513];
-    double prevMaskingInput[128][513];
-    double maskingOutput[128][513];
+    double maskingInput[128][40];
+    double prevMaskingInput[128][40];
+    double maskingOutput[128][40];
 
     // dummy convolution model
-    double freqGaussian[11];
+    double freqGaussian[5];
     double spatialGaussian[11];
 
     // functions to clear masking model input and output buffers
@@ -68,10 +72,15 @@ private:
     void clearMaskingOutput();
 
     // other buffers used in masking models
-    double colBuffer[513];
+    double colBuffer[40];
     double rowBuffer[128];
     double freqConvBuffer[523]; // 523 + 11 - 1
     double spatialConvBuffer[138]; // 128 + 11 - 1
+
+    // gammatone filter bank and outputs
+    double gammatoneFilter[40][513];
+    double filterOutputL[40];
+    double filterOutputR[40];
     
     // info about the audio device this component is recieving input from
     double fs;
@@ -83,10 +92,11 @@ private:
 
     // useful helper functions
     int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
-    int calculateFreqBin(const int freq);
+    Colour intensityToColour(const float intensity);
     void runMaskingModel();
     void calculateFreqMasking();
     void calculateSpatialMasking();
+    void makeGammatoneFilters();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

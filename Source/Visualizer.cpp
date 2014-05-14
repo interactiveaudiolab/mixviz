@@ -11,15 +11,18 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Visualizer.h"
 #include <fftw3.h>
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
+#include <string>
+#include <sstream>
+#include <fstream>
 
 using namespace std;
 
 //==============================================================================
 Visualizer::Visualizer()
     :   numSpatialBins(128),
-        numFreqBins(513)
+        numFreqBins(40)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -31,12 +34,11 @@ Visualizer::Visualizer()
     fftR = fftw_plan_dft_r2c_1d(1024, fftInputR, fftOutputR, FFTW_MEASURE);
     fftStereo = fftw_plan_dft_r2c_1d(1024, fftInputStereo, fftOutputStereo, FFTW_MEASURE);
 
-    //initialize gaussain
+    //initialize gaussians
     for (int i = -5; i < 6; ++i)
-    {
-        freqGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
         spatialGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
-    } 
+    for (int i = -2; i < 3; ++i)
+        freqGaussian[i+2] = exp(pow((float)i,2.0f)/-8.0f);
 }
 
 Visualizer::~Visualizer()
@@ -53,6 +55,9 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     bufferSize = 1024; //device->getCurrentBufferSizeSamples();
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
     fs = device->getCurrentSampleRate();
+
+    // make the gammatone filter bank
+    makeGammatoneFilters();
 
     clearMaskingInput();
     clearMaskingOutput();
@@ -81,22 +86,45 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             //fftInputStereo[i]=fftInputL[i]+fftInputR[i];
         }
 
-        // perform all the FFTs and calculate magnitudes, spatial/frequency positions
+        // perform all the FFTs and calculate magnitudes
         fftw_execute(fftL);
         fftw_execute(fftR);
         //fftw_execute(fftStereo);
         for (int freq=0; freq < 513; ++freq)
         {
             // calculate magnitudes
-            const double magnitudeL = sqrt(pow(fftOutputL[freq][0],2.0f) + pow(fftOutputL[freq][1],2.0f));
-            const double magnitudeR = sqrt(pow(fftOutputR[freq][0],2.0f) + pow(fftOutputR[freq][1],2.0f));
-            const double magnitudeStereo = magnitudeL + magnitudeR;
-            //const double magnitudeStereo = sqrt(pow(fftOutputStereo[freq][0],2.0f) + pow(fftOutputStereo[freq][1],2.0f));
+            fftMagnitudesL[freq] = sqrt(pow(fftOutputL[freq][0],2.0f) + pow(fftOutputL[freq][1],2.0f));
+            fftMagnitudesR[freq] = sqrt(pow(fftOutputR[freq][0],2.0f) + pow(fftOutputR[freq][1],2.0f));
+        }
+        
+        // perform matrix multiply with magnitudes to get gammatone bins
+        const int m = numFreqBins;
+        const int c = 513;
+        const int n = 1;
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                filterOutputL[i] = 0;
+                filterOutputR[i] = 0;
+                for (int k = 0; k < c; ++k)
+                {
+                    const double filterVal = gammatoneFilter[i][k];
+                    filterOutputL[i] += filterVal * fftMagnitudesL[k];
+                    filterOutputR[i] += filterVal * fftMagnitudesR[k];
+                }
+            }
+        }
 
-            // calculate spatial/frequency positions and update buffer
-            const int freqBin = calculateFreqBin(freq);
+        // calculate spatial positions and update masking input
+        for (int freq = 0; freq < numFreqBins; ++freq)
+        {
+            const double magnitudeL = filterOutputL[freq];
+            const double magnitudeR = filterOutputR[freq];
+            const double magnitudeStereo = magnitudeL + magnitudeR;
+
             const int spatialBin = calculateSpatialBin(magnitudeL,magnitudeR);
-            maskingInput[spatialBin][freqBin] = magnitudeStereo;
+            maskingInput[spatialBin][freq] = magnitudeStereo;
         }
     }
 
@@ -111,7 +139,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-
     g.fillAll (Colours::black);   // clear the background
     const float winHeight = (float) getHeight();
     const float winWidth = (float) getWidth();
@@ -127,15 +154,16 @@ void Visualizer::paint (Graphics& g)
         for (int y = 0; y < numFreqBins; ++y)
         {
             const float intensity = (float) maskingOutput[x][y];
-            //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
             if (intensity > 0.0f) 
             {
+
+                //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
                 const float xf = (float) x;
                 const float yf = (float) y;
                 const Colour colour = Colour(0.5f, intensity, 1.0f, 1.0f);
                 g.setColour(colour);
-                g.fillRect(Rectangle<float> (xf / maxXIndex * winWidth - xOffset,
-                                            (maxYIndex - yf) / maxYIndex * winHeight - yOffset,
+                g.fillRect(Rectangle<float> (xf / maxXIndex * winWidth,
+                                            (maxYIndex - yf) / maxYIndex * winHeight,
                                             binWidth,
                                             binHeight));
             }
@@ -203,18 +231,17 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
     }
 }
 
-// this function returns the correct ERB frequency bin given a fft bin number
-int Visualizer::calculateFreqBin(const int freqBin)
+Colour Visualizer::intensityToColour(float intensity)
 {
-    const double freq = (double) freqBin * fs;
-    return freqBin;
+    return Colour(1.0f,1.0f,1.0f,1.0f);
 }
+
 
 // executes the masking model on inputs
 void Visualizer::runMaskingModel()
 {
     // run each masking model
-    calculateFreqMasking();
+    //calculateFreqMasking();
     calculateSpatialMasking();
     //calculateFreqMasking();
 
@@ -233,13 +260,13 @@ void Visualizer::calculateFreqMasking()
     // calculate the masking for each column
     for (int col = 0; col < numSpatialBins; ++col)
     {
-        // put the column in a buffer
+        // perform convolution
         for (int row = 0; row < numFreqBins; ++row)
         {
             // if this position is greater than 0, perform convolution
             if (maskingInput[col][row] > 0)
             {
-                for (int idx = 0; idx < 11; ++idx)
+                for (int idx = 0; idx < 5; ++idx)
                 {
                     const int j = row-5+idx;
                     if (j > 0 && j < numFreqBins)
@@ -281,6 +308,27 @@ void Visualizer::calculateSpatialMasking()
         {
             maskingInput[col][row] = rowBuffer[col];
             rowBuffer[col] = 0;
+        }
+    }
+}
+
+void Visualizer::makeGammatoneFilters()
+{
+    //ifstream filterText ("gammatone_filter.txt","r");
+    int filter = 0;
+    int i = 0;
+    float num = 0;
+    ifstream source;
+    source.open("gammatone_filter.txt");
+    for ( std::string line; std::getline(source,line);)
+    {
+        std::istringstream in(line);
+        while (in >> num)
+        {
+            gammatoneFilter[filter][i] = (double) num;
+            i = (i + 1) % 513; 
+            if (i == 0)
+                filter++;
         }
     }
 }
