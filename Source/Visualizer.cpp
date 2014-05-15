@@ -158,14 +158,12 @@ void Visualizer::paint (Graphics& g)
             const float intensity = (float) maskingOutput[x][y];
             if (intensity > 0.0f) 
             {
-
                 //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
                 const float xf = (float) x;
                 const float yf = (float) y;
-                const Colour colour = intensityToColour(intensity);
-                g.setColour(colour);
-                g.fillRect(Rectangle<float> (xf / maxXIndex * winWidth,
-                                            (yf - 1.0f) / maxYIndex * winHeight - yOffset,
+                g.setColour(intensityToColour(intensity));
+                g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth,
+                                            (maxYIndex - yf - 1.0f) / maxYIndex * winHeight - binHeight,
                                             binWidth,
                                             binHeight));
             }
