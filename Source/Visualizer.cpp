@@ -56,10 +56,12 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
     fs = device->getCurrentSampleRate();
 
-    // make the gammatone filter bank
     makeGammatoneFilters();
-
     clearMaskingInput();
+    for (int row = 0; row < numFreqBins; ++row)
+        colBuffer[row] = 0;
+    for (int col = 0; col < numSpatialBins; ++col)
+        rowBuffer[col] = 0;
     clearMaskingOutput();
 }
 
@@ -241,9 +243,8 @@ Colour Visualizer::intensityToColour(float intensity)
 void Visualizer::runMaskingModel()
 {
     // run each masking model
-    //calculateFreqMasking();
+    calculateFreqMasking();
     calculateSpatialMasking();
-    //calculateFreqMasking();
 
     // place the output into the output buffer
     for (int loc = 0; loc < numSpatialBins; ++loc)
@@ -260,17 +261,17 @@ void Visualizer::calculateFreqMasking()
     // calculate the masking for each column
     for (int col = 0; col < numSpatialBins; ++col)
     {
-        // perform convolution
         for (int row = 0; row < numFreqBins; ++row)
         {
             // if this position is greater than 0, perform convolution
-            if (maskingInput[col][row] > 0)
+            const double intensity = maskingInput[col][row];
+            if (intensity > 0)
             {
                 for (int idx = 0; idx < 5; ++idx)
                 {
-                    const int j = row-5+idx;
+                    const int j = row - 2 + idx;
                     if (j > 0 && j < numFreqBins)
-                        colBuffer[j] += freqGaussian[idx]*maskingInput[col][j];
+                        colBuffer[j] += freqGaussian[idx]*intensity;
                 }
             }
         }
@@ -286,19 +287,20 @@ void Visualizer::calculateFreqMasking()
 
 void Visualizer::calculateSpatialMasking()
 {
+    // calculate masking for each row
     for (int row = 0; row < numFreqBins; ++row)
     {
-        // put the row in a buffer
         for (int col = 0; col < numSpatialBins; ++col)
         {
             // if this position is greater than 0, perform convolution
-            if (maskingInput[col][row] > 0)
+            const double intensity = maskingInput[col][row];
+            if (intensity > 0)
             {
                 for (int idx = 0; idx < 11; ++idx)
                 {
-                    const int j = col-5+idx;
+                    const int j = col - 5 + idx;
                     if (j > 0 && j < numSpatialBins)
-                        rowBuffer[j] += spatialGaussian[idx]*maskingInput[col][j];
+                        rowBuffer[j] += spatialGaussian[idx]*intensity;
                 }
             }
         }
