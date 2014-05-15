@@ -32,7 +32,6 @@ Visualizer::Visualizer()
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
     fftR = fftw_plan_dft_r2c_1d(1024, fftInputR, fftOutputR, FFTW_MEASURE);
-    fftStereo = fftw_plan_dft_r2c_1d(1024, fftInputStereo, fftOutputStereo, FFTW_MEASURE);
 
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
@@ -85,16 +84,13 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
         {
             fftInputL[i] = (double) inputChannelData[2*track][i];
             fftInputR[i] = (double) inputChannelData[2*track+1][i];
-            //fftInputStereo[i]=fftInputL[i]+fftInputR[i];
         }
 
         // perform all the FFTs and calculate magnitudes
         fftw_execute(fftL);
         fftw_execute(fftR);
-        //fftw_execute(fftStereo);
         for (int freq=0; freq < 513; ++freq)
         {
-            // calculate magnitudes
             fftMagnitudesL[freq] = sqrt(pow(fftOutputL[freq][0],2.0f) + pow(fftOutputL[freq][1],2.0f));
             fftMagnitudesR[freq] = sqrt(pow(fftOutputR[freq][0],2.0f) + pow(fftOutputR[freq][1],2.0f));
         }
@@ -148,8 +144,6 @@ void Visualizer::paint (Graphics& g)
     const float maxYIndex = (float) numFreqBins;
     const float binHeight = winHeight / maxYIndex;
     const float binWidth = winWidth / maxXIndex;
-    const float yOffset = binHeight / 2.0f;
-    const float xOffset = binWidth / 2.0f;
 
     for (int x = 0; x < numSpatialBins; ++x)
     {
@@ -222,12 +216,12 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
     else if (magnitudeL > magnitudeR)
     {
         // signal is partially on the left
-        return ((int) ((magnitudeR/magnitudeL)*64));
+        return ((int) ((magnitudeR / magnitudeL) * (numSpatialBins / 2)));
     }
     else
     {
         // signal is partially on the right
-        return ((int) ((1-(magnitudeL/magnitudeR))*64)+63);
+        return ((int) ((1 - (magnitudeL / magnitudeR)) * (numSpatialBins / 2)) + (numSpatialBins / 2 - 1));
     }
 }
 

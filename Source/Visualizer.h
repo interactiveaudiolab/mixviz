@@ -38,12 +38,10 @@ private:
     // fft input arrays: real arrays containing audio samples
     double fftInputL[1024];
     double fftInputR[1024];
-    double fftInputStereo[1024];
 
     // fft output arrays containing complex numbers
     fftw_complex fftOutputL[513];
     fftw_complex fftOutputR[513];
-    fftw_complex fftOutputStereo[513];
 
     // fft output with phase info removed
     double fftMagnitudesL[513];
