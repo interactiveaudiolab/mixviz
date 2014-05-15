@@ -141,7 +141,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    g.fillAll (Colours::black);   // clear the background
+    g.fillAll (Colours::white);   // clear the background
     const float winHeight = (float) getHeight();
     const float winWidth = (float) getWidth();
     const float maxXIndex = (float) numSpatialBins;
@@ -162,10 +162,10 @@ void Visualizer::paint (Graphics& g)
                 //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
                 const float xf = (float) x;
                 const float yf = (float) y;
-                const Colour colour = Colour(0.5f, intensity, 1.0f, 1.0f);
+                const Colour colour = intensityToColour(intensity);
                 g.setColour(colour);
                 g.fillRect(Rectangle<float> (xf / maxXIndex * winWidth,
-                                            (maxYIndex - yf) / maxYIndex * winHeight,
+                                            (yf - 1.0f) / maxYIndex * winHeight - yOffset,
                                             binWidth,
                                             binHeight));
             }
@@ -235,7 +235,7 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
 
 Colour Visualizer::intensityToColour(float intensity)
 {
-    return Colour(1.0f,1.0f,1.0f,1.0f);
+    return Colour(0.5f, intensity / 30.0f, 1.0f, 1.0f);
 }
 
 
