@@ -3,3 +3,5 @@ Build/Linux/build/
 
 # ignore .swp files
 *.swp
+*.o
+*.d
