@@ -21,7 +21,7 @@
 //[/Headers]
 
 #include "MainWindow.h"
-
+#include "custom_jack_device.h"
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 //[/MiscUserDefs]
@@ -40,23 +40,18 @@ MainWindow::MainWindow ()
 
 
     //[UserPreSize]
-	audioIODeviceType = AudioIODeviceType::createAudioIODeviceType_JACK();
+	audioIODeviceType = createAudioIODeviceType_JACK_Custom();
 	if (audioIODeviceType != nullptr)
 	{
 		audioIODeviceType->scanForDevices();
 		StringArray deviceNames (audioIODeviceType->getDeviceNames());
-		for (int i=0; i<deviceNames.size(); ++i) {
-		    textEditor->insertTextAtCaret("device: ");
-			textEditor->insertTextAtCaret(deviceNames[i]);
-			textEditor->insertTextAtCaret("\n");
-			audioIODevice = audioIODeviceType->createDevice(deviceNames[i],deviceNames[i]);
-		}
+		audioIODevice = audioIODeviceType->createDevice(deviceNames[0],deviceNames[0]);
 	} else {
 		textEditor->insertTextAtCaret("Error, could not open Jack audio device. Is your Jack Server running?\n");
 	}
 	
 	addAndMakeVisible (visualizer = new Visualizer());
-    audioIODevice->open(BigInteger(3),BigInteger(12),48000,1024);
+    audioIODevice->open(BigInteger(15),BigInteger(15),48000,1024);
     if (audioIODevice->isOpen())
     {
         textEditor->insertTextAtCaret("Audio device is open\n");

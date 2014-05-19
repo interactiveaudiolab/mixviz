@@ -51,6 +51,8 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(OBJDIR)/relay_libjack_eeea1cb7.o \
+  $(OBJDIR)/custom_jack_device_e6a21451.o \
   $(OBJDIR)/Main_90ebc5c2.o \
   $(OBJDIR)/MainWindow_499ac812.o \
   $(OBJDIR)/Visualizer_c8686f67.o \
@@ -85,6 +87,16 @@ clean:
 strip:
 	@echo Stripping MixVis
 	-@strip --strip-unneeded $(OUTDIR)/$(TARGET)
+
+$(OBJDIR)/relay_libjack_eeea1cb7.o: ../../Source/relay_libjack.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling relay_libjack.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/custom_jack_device_e6a21451.o: ../../Source/custom_jack_device.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling custom_jack_device.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/Main_90ebc5c2.o: ../../Source/Main.cpp
 	-@mkdir -p $(OBJDIR)

@@ -50,6 +50,7 @@ private:
     // temporary constants
     const int numSpatialBins;
     const int numFreqBins;
+    const int numTracks;
 
     // fft plans
     fftw_plan fftL;
@@ -57,9 +58,9 @@ private:
     fftw_plan fftStereo;
     
     // masking model input and output buffers
-    double maskingInput[128][40];
-    double prevMaskingInput[128][40];
-    double maskingOutput[128][40];
+    double maskingInput[2][128][40];
+    double prevMaskingInput[2][128][40];
+    double maskingOutput[2][128][40];
 
     // dummy convolution model
     double freqGaussian[5];
@@ -90,10 +91,10 @@ private:
 
     // useful helper functions
     int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
-    Colour intensityToColour(const float intensity);
+    Colour intensityToColour(const float intensity, const int track);
     void runMaskingModel();
-    void calculateFreqMasking();
-    void calculateSpatialMasking();
+    void calculateFreqMasking(const int track);
+    void calculateSpatialMasking(const int track);
     void makeGammatoneFilters();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)

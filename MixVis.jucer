@@ -5,6 +5,12 @@
               jucerVersion="3.1.0">
   <MAINGROUP id="yF4o1v" name="MixVis">
     <GROUP id="{0C3447DD-BEBB-1D8A-F494-31F68CB7DC4C}" name="Source">
+      <FILE id="tCDoUp" name="relay_libjack.cpp" compile="1" resource="0"
+            file="Source/relay_libjack.cpp"/>
+      <FILE id="nnSnOu" name="custom_jack_device.cpp" compile="1" resource="0"
+            file="Source/custom_jack_device.cpp"/>
+      <FILE id="El39Zz" name="custom_jack_device.h" compile="0" resource="0"
+            file="Source/custom_jack_device.h"/>
       <FILE id="H5mdzx" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="wCwa2y" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
       <FILE id="Ysgmr2" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
