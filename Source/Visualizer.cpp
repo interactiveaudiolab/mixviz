@@ -28,7 +28,7 @@ Visualizer::Visualizer()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setOpaque(true);
-    startTimer(1000/48);
+    startTimer(1000/30);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
@@ -130,8 +130,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
         }
     }
 
-    runMaskingModel();
-    
     // We need to clear the output buffers before returning, in case they're full of junk..
     for (int j = 0; j < numOutputChannels; ++j)
         if (outputChannelData[j] != nullptr)
@@ -141,6 +139,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
+    runMaskingModel();
     g.fillAll (Colours::white);   // clear the background
     const float winHeight = (float) getHeight();
     const float winWidth = (float) getWidth();
@@ -159,11 +158,10 @@ void Visualizer::paint (Graphics& g)
                 const float intensity = (float) maskingOutput[track][x][y];
                 if (intensity > 0.0f) 
                 {
-                    cout << "track" << track << endl;
                     //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
                     const float xf = (float) x;
                     const float yf = (float) y;
-                    g.setColour(intensityToColour(10.0f,track));
+                    g.setColour(intensityToColour(intensity,track));
                     g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth,
                                                 (maxYIndex - yf - 1.0f) / maxYIndex * winHeight - binHeight,
                                                 binWidth,

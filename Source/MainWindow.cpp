@@ -45,6 +45,12 @@ MainWindow::MainWindow ()
 	{
 		audioIODeviceType->scanForDevices();
 		StringArray deviceNames (audioIODeviceType->getDeviceNames());
+        //for (int i=0; i<deviceNames.size(); ++i) {
+          //  textEditor->insertTextAtCaret("device: ");
+            //textEditor->insertTextAtCaret(deviceNames[i]);
+            //textEditor->insertTextAtCaret("\n");
+        //}
+        textEditor->insertTextAtCaret(deviceNames[0]);
 		audioIODevice = audioIODeviceType->createDevice(deviceNames[0],deviceNames[0]);
 	} else {
 		textEditor->insertTextAtCaret("Error, could not open Jack audio device. Is your Jack Server running?\n");
