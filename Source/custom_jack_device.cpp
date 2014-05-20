@@ -506,5 +506,7 @@ void getJackClientConfiguration(JackClientConfiguration &conf) {
                             "","","","" };
     conf.inputChannels = StringArray(channels,4);
     conf.outputChannels = StringArray(channels,4);
+    conf.midi_events = nullptr;
+    conf.session_uuid = "nothing";
 }
 
