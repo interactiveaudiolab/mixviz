@@ -85,8 +85,8 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
         // copy input L and R channel data into our input sample buffer
         for (int i = 0; i < numSamples; ++i)
         {
-            fftInputL[i] = (double) inputChannelData[2*track][i];
-            fftInputR[i] = (double) inputChannelData[2*track+1][i];
+            fftInputR[i] = (double) inputChannelData[2*track][i];
+            fftInputL[i] = (double) inputChannelData[2*track+1][i];
         }
 
         // perform all the FFTs and calculate magnitudes
@@ -156,7 +156,7 @@ void Visualizer::paint (Graphics& g)
             for (int y = 0; y < numFreqBins; ++y)
             {
                 const float intensity = (float) maskingOutput[track][x][y];
-                if (intensity > 0.0f) 
+                if (intensity > 20.0f) 
                 {
                     //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
                     const float xf = (float) x;
@@ -243,7 +243,7 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
 
 Colour Visualizer::intensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, intensity / 10.0f, 1.0f, 1.0f);
+    return Colour((float)track / (float)numTracks, intensity / 200.0f, 1.0f, 1.0f);
 }
 
 
