@@ -21,9 +21,9 @@
 //[/Headers]
 
 #include "MainWindow.h"
-#include "custom_jack_device.h"
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
+#include "custom_jack_device.h"
 //[/MiscUserDefs]
 
 //==============================================================================
