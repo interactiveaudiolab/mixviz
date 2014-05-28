@@ -27,6 +27,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
+    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -47,10 +48,12 @@ private:
     double fftMagnitudesL[513];
     double fftMagnitudesR[513];
 
-    // temporary constants
-    const int numSpatialBins;
-    const int numFreqBins;
-    const int numTracks;
+    // "settings" constants
+    int numSpatialBins;
+    int numFreqBins;
+    int numTracks;
+    float intensityScalingConstant;
+    float intensityCutoffConstant;
 
     // fft plans
     fftw_plan fftL;

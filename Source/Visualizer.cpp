@@ -21,14 +21,14 @@ using namespace std;
 
 //==============================================================================
 Visualizer::Visualizer()
-    :   numSpatialBins(128),
-        numFreqBins(40),
-        numTracks(2)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setOpaque(true);
     startTimer(1000/30);
+
+    // give settings default values
+    changeSettings(2,128,40,100.0f,5.0f);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
@@ -45,7 +45,15 @@ Visualizer::~Visualizer()
 {    
     fftw_destroy_plan(fftL);
     fftw_destroy_plan(fftR);
-    fftw_destroy_plan(fftStereo);
+}
+
+void Visualizer::changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff)
+{
+    numTracks = tracks;
+    numSpatialBins = spatialBins;
+    numFreqBins = freqBins;
+    intensityScalingConstant = intensityScaling;
+    intensityCutoffConstant = intensityCutoff;
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -156,7 +164,7 @@ void Visualizer::paint (Graphics& g)
             for (int y = 0; y < numFreqBins; ++y)
             {
                 const float intensity = (float) maskingOutput[track][x][y];
-                if (intensity > 20.0f) 
+                if (intensity > intensityCutoffConstant) 
                 {
                     //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
                     const float xf = (float) x;
@@ -243,7 +251,7 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
 
 Colour Visualizer::intensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, intensity / 200.0f, 1.0f, 1.0f);
+    return Colour((float)track / (float)numTracks, intensity / intensityScalingConstant, 1.0f, 1.0f);
 }
 
 

@@ -35,7 +35,8 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class MainWindow  : public Component
+class MainWindow  : public Component,
+                    public ButtonListener
 {
 public:
     //==============================================================================
@@ -44,10 +45,12 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+    Array<PropertyComponent*> createSettings();
     //[/UserMethods]
 
     void paint (Graphics& g);
     void resized();
+    void buttonClicked (Button* buttonThatWasClicked);
 
 
 
@@ -56,9 +59,16 @@ private:
     ScopedPointer<AudioIODevice> audioIODevice;
 	ScopedPointer<AudioIODeviceType> audioIODeviceType;
     ScopedPointer<Visualizer> visualizer;
+    ScopedPointer<PropertyPanel> settings;
+    Value numTracksValue;
+    Value numSpatialBinsValue;
+    Value numFreqBinsValue;
+    Value intensityScalingConstantValue;
+    Value intensityCutoffConstantValue;
     //[/UserVariables]
 
     //==============================================================================
+    ScopedPointer<TextButton> startButton;
     ScopedPointer<TextEditor> textEditor;
 
 
