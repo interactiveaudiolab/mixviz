@@ -65,6 +65,7 @@ private:
     Value numFreqBinsValue;
     Value intensityScalingConstantValue;
     Value intensityCutoffConstantValue;
+    Value timeDecayConstantValue;
     //[/UserVariables]
 
     //==============================================================================

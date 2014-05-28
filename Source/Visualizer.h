@@ -27,7 +27,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff);
+    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -54,6 +54,7 @@ private:
     int numTracks;
     float intensityScalingConstant;
     float intensityCutoffConstant;
+    double timeDecayConstant;
 
     // fft plans
     fftw_plan fftL;

@@ -37,13 +37,15 @@ Array<PropertyComponent*> MainWindow::createSettings()
     numTracksValue.setValue("2");
     intensityScalingConstantValue.setValue("100");
     intensityCutoffConstantValue.setValue("5");
+    timeDecayConstantValue.setValue("0.5");
 
     // add text fields to main window
-    comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (128)", 15, false));
-    comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (40)", 15, false));
-    comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (2)", 15, false));
-    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (100)", 15, false));
-    comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (5)", 15, false));
+    comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (128)", 20, false));
+    comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (40)", 20, false));
+    comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (2)", 20, false));
+    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (100)", 20, false));
+    comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (5)", 20, false));
+    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.5)", 20, false));
     //comps.add (new VisualizerButtonPropertyComponent ("Click to Apply Settings"));
     return comps;
 }
@@ -150,7 +152,8 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         const int numFreqBins = (int) numFreqBinsValue.getValue();
         const float intensityScalingConstant = (float) intensityScalingConstantValue.getValue();
         const float intensityCutoffConstant = (float) intensityCutoffConstantValue.getValue();
-        visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant);
+        const double timeDecayConstant = (double) timeDecayConstantValue.getValue();
+        visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant);
         //[/UserButtonCode_startButton]
     }
 
