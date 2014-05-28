@@ -188,11 +188,11 @@ void Visualizer::paint (Graphics& g)
     // draw a line down the middle and around this box
     g.setColour(Colours::black);
     g.fillRect(Rectangle<float>(0.0f, 0.0f, winWidth, 1.0f));
-    g.fillRect(Rectangle<float>(0.0f, winHeight - binHeight, winWidth, 1.0f));
+    g.fillRect(Rectangle<float>(0.0f, winHeight, winWidth, 1.0f));
     g.fillRect(Rectangle<float>(0.0f, 0.0f, 1.0f, winHeight));
     g.fillRect(Rectangle<float>(winWidth - 1.0f, 0.0f, 1.0f, winHeight));
     
-    g.fillRect(Rectangle<float>(winWidth / 2.0f, 0.0f, 1.0f, winHeight - binHeight));
+    g.fillRect(Rectangle<float>(winWidth / 2.0f, 0.0f, 1.0f, winHeight));
 }
 
 void Visualizer::resized()
