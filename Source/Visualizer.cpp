@@ -28,7 +28,7 @@ Visualizer::Visualizer()
     startTimer(1000/30);
 
     // give settings default values
-    changeSettings(2, 128, 40, 100.0f, 5.0f, 0.5);
+    changeSettings(2, 128, 40, 100.0f, 5.0f, 0.5, 0, 0);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
@@ -47,7 +47,7 @@ Visualizer::~Visualizer()
     fftw_destroy_plan(fftR);
 }
 
-void Visualizer::changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay)
+void Visualizer::changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag)
 {
     numTracks = tracks;
     numSpatialBins = spatialBins;
@@ -55,6 +55,8 @@ void Visualizer::changeSettings(const int tracks, const int spatialBins, const i
     intensityScalingConstant = intensityScaling;
     intensityCutoffConstant = intensityCutoff;
     timeDecayConstant = timeDecay;
+    freqMaskingFlag = freqFlag;
+    spatialMaskingFlag = spatialFlag;
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -155,8 +157,12 @@ void Visualizer::paint (Graphics& g)
 {
     runMaskingModel();
     g.fillAll (Colours::white);   // clear the background
-    const float winHeight = (float) getHeight();
-    const float winWidth = (float) getWidth();
+    const float leftBorder = 40.0f;
+    const float bottomBorder = 40.0f;
+    const float height = (float) getHeight();
+    const float width = (float) getWidth();
+    const float winHeight = height - bottomBorder;
+    const float winWidth = width - leftBorder;
     const float maxXIndex = (float) numSpatialBins;
     const float maxYIndex = (float) numFreqBins;
     const float binHeight = winHeight / maxYIndex;
@@ -176,7 +182,7 @@ void Visualizer::paint (Graphics& g)
                     const float xf = (float) x;
                     const float yf = (float) y;
                     g.setColour(intensityToColour(intensity,track));
-                    g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth,
+                    g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight,
                                                 binWidth,
                                                 binHeight));
@@ -187,12 +193,11 @@ void Visualizer::paint (Graphics& g)
 
     // draw a line down the middle and around this box
     g.setColour(Colours::black);
-    g.fillRect(Rectangle<float>(0.0f, 0.0f, winWidth, 1.0f));
-    g.fillRect(Rectangle<float>(0.0f, winHeight, winWidth, 1.0f));
-    g.fillRect(Rectangle<float>(0.0f, 0.0f, 1.0f, winHeight));
-    g.fillRect(Rectangle<float>(winWidth - 1.0f, 0.0f, 1.0f, winHeight));
-    
-    g.fillRect(Rectangle<float>(winWidth / 2.0f, 0.0f, 1.0f, winHeight));
+    g.fillRect(Rectangle<float>(leftBorder, 0.0f, winWidth, 1.0f)); // top line
+    g.fillRect(Rectangle<float>(leftBorder, winHeight, winWidth, 1.0f)); // bottom line
+    g.fillRect(Rectangle<float>(leftBorder, 0.0f, 1.0f, winHeight)); // left line
+    g.fillRect(Rectangle<float>(width - 1.0f, 0.0f, 1.0f, winHeight)); // right line
+    g.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, 0.0f, 1.0f, winHeight)); // middle line
 }
 
 void Visualizer::resized()
@@ -275,8 +280,11 @@ void Visualizer::runMaskingModel()
     // run the masking model for each track then copy into output buffer
     for (int track = 0; track < numTracks; ++track)
     {
-        //calculateFreqMasking(track);
-        //calculateSpatialMasking(track);
+
+        if (freqMaskingFlag)
+            calculateFreqMasking(track);
+        if (spatialMaskingFlag)
+            calculateSpatialMasking(track);
 
         for (int loc = 0; loc < numSpatialBins; ++loc)
         {

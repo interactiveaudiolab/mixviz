@@ -27,7 +27,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay);
+    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -55,6 +55,8 @@ private:
     float intensityScalingConstant;
     float intensityCutoffConstant;
     double timeDecayConstant;
+    int freqMaskingFlag;
+    int spatialMaskingFlag;
 
     // fft plans
     fftw_plan fftL;
@@ -62,9 +64,9 @@ private:
     fftw_plan fftStereo;
     
     // masking model input and output buffers
-    double maskingInput[2][128][40];
-    double prevMaskingInput[2][128][40];
-    double maskingOutput[2][128][40];
+    double maskingInput[4][128][40];
+    double prevMaskingInput[4][128][40];
+    double maskingOutput[4][128][40];
 
     // dummy convolution model
     double freqGaussian[5];

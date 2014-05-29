@@ -38,6 +38,8 @@ Array<PropertyComponent*> MainWindow::createSettings()
     intensityScalingConstantValue.setValue("100");
     intensityCutoffConstantValue.setValue("5");
     timeDecayConstantValue.setValue("0.5");
+    freqMaskingFlagValue.setValue("0");
+    spatialMaskingFlagValue.setValue("0");
 
     // add text fields to main window
     comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (128)", 20, false));
@@ -46,6 +48,8 @@ Array<PropertyComponent*> MainWindow::createSettings()
     comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (100)", 20, false));
     comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (5)", 20, false));
     comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.5)", 20, false));
+    comps.add (new TextPropertyComponent (freqMaskingFlagValue, "Frequency Masking (1 -> on, 0 -> off)", 20, false));
+    comps.add (new TextPropertyComponent (spatialMaskingFlagValue, "Spatial Masking (1 -> on, 0 -> off)", 20, false));
     //comps.add (new VisualizerButtonPropertyComponent ("Click to Apply Settings"));
     return comps;
 }
@@ -134,8 +138,8 @@ void MainWindow::resized()
     startButton->setBounds (408, 0, 150, 24);
     textEditor->setBounds (0, 0, 400, 24);
     //[UserResized] Add your own custom resize handling here..
-    visualizer->setBounds(0,299,600,600);
-    settings->setBounds(0,25,600,200);
+    visualizer->setBounds(0,300,600,600);
+    settings->setBounds(0,25,600,275);
     //[/UserResized]
 }
 
@@ -153,7 +157,9 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         const float intensityScalingConstant = (float) intensityScalingConstantValue.getValue();
         const float intensityCutoffConstant = (float) intensityCutoffConstantValue.getValue();
         const double timeDecayConstant = (double) timeDecayConstantValue.getValue();
-        visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant);
+        const int freqMaskingFlag = (int) freqMaskingFlagValue.getValue();
+        const int spatialMaskingFlag = (int) spatialMaskingFlagValue.getValue();
+        visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, freqMaskingFlag, spatialMaskingFlag);
         //[/UserButtonCode_startButton]
     }
 

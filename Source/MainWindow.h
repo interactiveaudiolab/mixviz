@@ -66,6 +66,8 @@ private:
     Value intensityScalingConstantValue;
     Value intensityCutoffConstantValue;
     Value timeDecayConstantValue;
+    Value freqMaskingFlagValue;
+    Value spatialMaskingFlagValue;
     //[/UserVariables]
 
     //==============================================================================
