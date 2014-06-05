@@ -42,15 +42,14 @@ Array<PropertyComponent*> MainWindow::createSettings()
     spatialMaskingFlagValue.setValue("0");
 
     // add text fields to main window
-    comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (128)", 20, false));
-    comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (40)", 20, false));
+    comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (Fixed)", 20, false));
+    comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (Fixed)", 20, false));
     comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (2)", 20, false));
     comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (100)", 20, false));
     comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (5)", 20, false));
     comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.5)", 20, false));
     comps.add (new TextPropertyComponent (freqMaskingFlagValue, "Frequency Masking (1 -> on, 0 -> off)", 20, false));
     comps.add (new TextPropertyComponent (spatialMaskingFlagValue, "Spatial Masking (1 -> on, 0 -> off)", 20, false));
-    //comps.add (new VisualizerButtonPropertyComponent ("Click to Apply Settings"));
     return comps;
 }
 //[/MiscUserDefs]
@@ -101,7 +100,7 @@ MainWindow::MainWindow ()
 
     //[/UserPreSize]
 
-    setSize (600, 900);
+    setSize (700, 1000);
 
 
     //[Constructor] You can add your own custom stuff here..
@@ -151,6 +150,7 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
     if (buttonThatWasClicked == startButton)
     {
         //[UserButtonCode_startButton] -- add your button handler code here..
+        // update visualizer settings
         const int numTracks = (int) numTracksValue.getValue();
         const int numSpatialBins = (int) numSpatialBinsValue.getValue();
         const int numFreqBins = (int) numFreqBinsValue.getValue();
@@ -160,6 +160,7 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         const int freqMaskingFlag = (int) freqMaskingFlagValue.getValue();
         const int spatialMaskingFlag = (int) spatialMaskingFlagValue.getValue();
         visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, freqMaskingFlag, spatialMaskingFlag);
+        //
         //[/UserButtonCode_startButton]
     }
 
@@ -185,7 +186,7 @@ BEGIN_JUCER_METADATA
 <JUCER_COMPONENT documentType="Component" className="MainWindow" componentName=""
                  parentClasses="public Component" constructorParams="" variableInitialisers=""
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="900">
+                 fixedSize="0" initialWidth="700" initialHeight="1000">
   <BACKGROUND backgroundColour="ffffffff"/>
   <TEXTBUTTON name="Start" id="db72bd0eaa128ea6" memberName="startButton" virtualName=""
               explicitFocusOrder="0" pos="408 0 150 24" buttonText="Apply Settings"

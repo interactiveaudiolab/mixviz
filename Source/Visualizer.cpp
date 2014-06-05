@@ -157,16 +157,20 @@ void Visualizer::paint (Graphics& g)
 {
     runMaskingModel();
     g.fillAll (Colours::white);   // clear the background
-    const float leftBorder = 40.0f;
+    const float leftBorder = 70.0f;
+    const float rightBorder = 30.0f;
     const float bottomBorder = 40.0f;
     const float height = (float) getHeight();
     const float width = (float) getWidth();
     const float winHeight = height - bottomBorder;
-    const float winWidth = width - leftBorder;
+    const float winWidth = width - leftBorder - rightBorder;
     const float maxXIndex = (float) numSpatialBins;
     const float maxYIndex = (float) numFreqBins;
     const float binHeight = winHeight / maxYIndex;
     const float binWidth = winWidth / maxXIndex;
+    const float textWidth = 30.0f;
+    const float textOffset = textWidth / 2.0f;
+    const float tickHeight = 5.0f;
     
     // draw the tracks
     for (int track = 0; track < numTracks; ++track)
@@ -196,8 +200,52 @@ void Visualizer::paint (Graphics& g)
     g.fillRect(Rectangle<float>(leftBorder, 0.0f, winWidth, 1.0f)); // top line
     g.fillRect(Rectangle<float>(leftBorder, winHeight, winWidth, 1.0f)); // bottom line
     g.fillRect(Rectangle<float>(leftBorder, 0.0f, 1.0f, winHeight)); // left line
-    g.fillRect(Rectangle<float>(width - 1.0f, 0.0f, 1.0f, winHeight)); // right line
+    g.fillRect(Rectangle<float>(width - rightBorder, 0.0f, 1.0f, winHeight)); // right line
     g.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, 0.0f, 1.0f, winHeight)); // middle line
+
+    // draw text and tick marks for labeling the graph
+    g.drawText ("Spatial Position", 
+                Rectangle<float>(winWidth / 2.0f + leftBorder - 40.0f,
+                                                    winHeight + bottomBorder / 3.0f,
+                                                    100.0f,
+                                                    10.0f),
+                Justification(1),
+                true);
+
+    // L100
+    g.fillRect (Rectangle<float>(leftBorder, winHeight, 1.0f, tickHeight));
+    g.drawText ("L100",
+                Rectangle<float>(leftBorder - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Justification(4),
+                true);
+
+    // L50
+    g.fillRect (Rectangle<float>(leftBorder + winWidth / 4.0f, winHeight, 1.0f, tickHeight));
+    g.drawText ("L50",
+                Rectangle<float>(leftBorder + winWidth / 4.0f - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Justification(4),
+                true);
+    
+    // C
+    g.fillRect (Rectangle<float>(leftBorder + winWidth / 2.0f, winHeight, 1.0f, tickHeight));
+    g.drawText ("C",
+                Rectangle<float>(leftBorder + winWidth / 2.0f - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Justification(4),
+                true);
+
+    // R50
+    g.fillRect (Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f, winHeight, 1.0f, tickHeight));
+    g.drawText ("R50",
+                Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Justification(4),
+                true);
+
+    // R100
+    g.fillRect (Rectangle<float>(leftBorder + winWidth, winHeight, 1.0f, tickHeight));
+    g.drawText ("R100",
+                Rectangle<float>(leftBorder + winWidth - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Justification(4),
+                true);
 }
 
 void Visualizer::resized()
