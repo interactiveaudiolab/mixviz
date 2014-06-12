@@ -157,18 +157,19 @@ void Visualizer::paint (Graphics& g)
 {
     runMaskingModel();
     g.fillAll (Colours::white);   // clear the background
-    const float leftBorder = 70.0f;
+    const float leftBorder = 100.0f;
     const float rightBorder = 30.0f;
     const float bottomBorder = 40.0f;
+    const float topBorder = 5.0f;
     const float height = (float) getHeight();
     const float width = (float) getWidth();
-    const float winHeight = height - bottomBorder;
+    const float winHeight = height - bottomBorder - topBorder;
     const float winWidth = width - leftBorder - rightBorder;
     const float maxXIndex = (float) numSpatialBins;
     const float maxYIndex = (float) numFreqBins;
     const float binHeight = winHeight / maxYIndex;
     const float binWidth = winWidth / maxXIndex;
-    const float textWidth = 30.0f;
+    const float textWidth = 50.0f;
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
     
@@ -187,7 +188,7 @@ void Visualizer::paint (Graphics& g)
                     const float yf = (float) y;
                     g.setColour(intensityToColour(intensity,track));
                     g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
-                                                ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight,
+                                                ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
                                                 binHeight));
                 }
@@ -197,55 +198,78 @@ void Visualizer::paint (Graphics& g)
 
     // draw a line down the middle and around this box
     g.setColour(Colours::black);
-    g.fillRect(Rectangle<float>(leftBorder, 0.0f, winWidth, 1.0f)); // top line
-    g.fillRect(Rectangle<float>(leftBorder, winHeight, winWidth, 1.0f)); // bottom line
-    g.fillRect(Rectangle<float>(leftBorder, 0.0f, 1.0f, winHeight)); // left line
-    g.fillRect(Rectangle<float>(width - rightBorder, 0.0f, 1.0f, winHeight)); // right line
-    g.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, 0.0f, 1.0f, winHeight)); // middle line
+    g.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, 1.0f)); // top line
+    g.fillRect(Rectangle<float>(leftBorder, winHeight + topBorder, winWidth, 1.0f)); // bottom line
+    g.fillRect(Rectangle<float>(leftBorder, topBorder, 1.0f, winHeight)); // left line
+    g.fillRect(Rectangle<float>(width - rightBorder, topBorder, 1.0f, winHeight)); // right line
+    g.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, topBorder, 1.0f, winHeight)); // middle line
 
     // draw text and tick marks for labeling the graph
     g.drawText ("Spatial Position", 
                 Rectangle<float>(winWidth / 2.0f + leftBorder - 40.0f,
-                                                    winHeight + bottomBorder / 3.0f,
+                                                    winHeight + bottomBorder / 3.0f + topBorder,
                                                     100.0f,
                                                     10.0f),
                 Justification(1),
                 true);
 
     // L100
-    g.fillRect (Rectangle<float>(leftBorder, winHeight, 1.0f, tickHeight));
+    g.fillRect (Rectangle<float>(leftBorder, winHeight + topBorder, 1.0f, tickHeight));
     g.drawText ("L100",
-                Rectangle<float>(leftBorder - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Rectangle<float>(leftBorder - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     // L50
-    g.fillRect (Rectangle<float>(leftBorder + winWidth / 4.0f, winHeight, 1.0f, tickHeight));
+    g.fillRect (Rectangle<float>(leftBorder + winWidth / 4.0f, winHeight + topBorder, 1.0f, tickHeight));
     g.drawText ("L50",
-                Rectangle<float>(leftBorder + winWidth / 4.0f - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Rectangle<float>(leftBorder + winWidth / 4.0f - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
     
     // C
-    g.fillRect (Rectangle<float>(leftBorder + winWidth / 2.0f, winHeight, 1.0f, tickHeight));
+    g.fillRect (Rectangle<float>(leftBorder + winWidth / 2.0f, winHeight + topBorder, 1.0f, tickHeight));
     g.drawText ("C",
-                Rectangle<float>(leftBorder + winWidth / 2.0f - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Rectangle<float>(leftBorder + winWidth / 2.0f - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     // R50
-    g.fillRect (Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f, winHeight, 1.0f, tickHeight));
+    g.fillRect (Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f, winHeight + topBorder, 1.0f, tickHeight));
     g.drawText ("R50",
-                Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     // R100
-    g.fillRect (Rectangle<float>(leftBorder + winWidth, winHeight, 1.0f, tickHeight));
+    g.fillRect (Rectangle<float>(leftBorder + winWidth, winHeight + topBorder, 1.0f, tickHeight));
     g.drawText ("R100",
-                Rectangle<float>(leftBorder + winWidth - textOffset, winHeight + 6.0f, textWidth, 10.0f),
+                Rectangle<float>(leftBorder + winWidth - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
+
+    // draw cutoff frequency lines
+    // first draw the 0 
+    const float tickX = leftBorder - tickHeight;
+    const float txtX = tickX - textWidth;
+    g.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
+    g.drawText ("0", Rectangle<float>(txtX, winHeight + topBorder, tickHeight, 10.0f), Justification(4), true);
+    for (int i = 0; i < numFreqBins; ++i)
+    {
+        const float yf = (float) i;
+        g.fillRect (Rectangle<float>(   tickX, 
+                                        ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
+                                        tickHeight,
+                                        1.0f));
+        g.drawText (String((int) cutoffFreqs[i]),
+                    Rectangle<float>(   txtX, 
+                                        ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight - 7.0f + topBorder,
+                                        textWidth,
+                                        10.0f),
+                    Justification(12),
+                    true);
+    }
+
 }
 
 void Visualizer::resized()
@@ -407,10 +431,11 @@ void Visualizer::makeGammatoneFilters()
     int filter = 0;
     int i = 0;
     float num = 0;
-    ifstream source;
-    // gammatone filters precomputed using 40 bins and 1024 fft size
-    source.open("gammatone_filter.txt");
-    for ( std::string line; std::getline(source,line);)
+
+    // read in gammatone filter data, precomputed with 40 bins and 1024 fft size
+    ifstream filtertxt;
+    filtertxt.open("gammatone_filter.txt");
+    for ( std::string line; std::getline(filtertxt,line);)
     {
         std::istringstream in(line);
         while (in >> num)
@@ -419,6 +444,19 @@ void Visualizer::makeGammatoneFilters()
             i = (i + 1) % 513; 
             if (i == 0)
                 filter++;
+        }
+    }
+
+    // read in cutoff frequency data of those gammatone filters
+    ifstream cfreqstxt;
+    cfreqstxt.open("cutoff_freqs.txt");
+    for ( std::string line; std::getline(cfreqstxt,line);)
+    {
+        std::istringstream in(line);
+        while (in >> num)
+        {
+            cutoffFreqs[i] = (double) num;
+            i += 1;
         }
     }
 }

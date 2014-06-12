@@ -84,6 +84,7 @@ private:
 
     // gammatone filter bank and outputs
     double gammatoneFilter[40][513];
+    double cutoffFreqs[40];
     double filterOutputL[40];
     double filterOutputR[40];
     
