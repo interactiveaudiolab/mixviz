@@ -26,7 +26,7 @@ INSTALLATION
 
 USING THE VISUALIZER
 ====================
-1. Start up the visualizer (./Builds/Linux/build/Mixvis). You probably have to start it from a folder containing "gammatone_filter.txt". 
+1. Start up the visualizer (./Builds/Linux/build/Mixvis). You probably have to start it from a folder containing "gammatone_filter.txt" and "cutoff_freqs.txt". 
 2. Start up your third party audio application. I have been using Ardour which seems to play very nicely with Jack.
-3. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK". In_1 of MixVisJack corresponds to the right channel of your first track, In_2 corresponds to the left channel of the first track and so on. Currently TWO stereo tracks are supported
+3. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK". In_1 of MixVisJack corresponds to the right channel of your first track, In_2 corresponds to the left channel of the first track and so on. Currently up to 8 stereo tracks are supported. In order to use with mono tracks, set your mono tracks to have stereo output in your third party application.
 4. Play audio through your third party application and it should be visualized!
