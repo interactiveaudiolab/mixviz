@@ -249,7 +249,8 @@ void Visualizer::paint (Graphics& g)
                 true);
 
     // draw cutoff frequency lines
-    // first draw the 0 
+    // first draw the 0
+    g.drawFittedText ("Frequency (Hz)", Rectangle<int>(0,(int)(winHeight / 2.0f + topBorder), (int)(leftBorder/2.0f), (int)(winHeight/3.0f)), Justification(1), 10);
     const float tickX = leftBorder - tickHeight;
     const float txtX = tickX - textWidth;
     g.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
