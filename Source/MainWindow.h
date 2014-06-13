@@ -45,7 +45,8 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    Array<PropertyComponent*> createSettings();
+    Array<PropertyComponent*> createSettings(bool first);
+    Array<PropertyComponent*> createTracks(int numTracks);
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -60,6 +61,7 @@ private:
 	ScopedPointer<AudioIODeviceType> audioIODeviceType;
     ScopedPointer<Visualizer> visualizer;
     ScopedPointer<PropertyPanel> settings;
+    ScopedPointer<PropertyPanel> tracks;
     Value numTracksValue;
     Value numSpatialBinsValue;
     Value numFreqBinsValue;

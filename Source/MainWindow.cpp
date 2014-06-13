@@ -27,31 +27,48 @@
 
 #include "custom_jack_device.h"
 
-Array<PropertyComponent*> MainWindow::createSettings()
+Array<PropertyComponent*> MainWindow::createSettings(bool first)
 {
     Array<PropertyComponent*> comps;
 
     // initialize constants to default values
-    numSpatialBinsValue.setValue("128");
-    numFreqBinsValue.setValue("40");
-    numTracksValue.setValue("2");
-    intensityScalingConstantValue.setValue("100");
-    intensityCutoffConstantValue.setValue("5");
-    timeDecayConstantValue.setValue("0.5");
-    freqMaskingFlagValue.setValue("0");
-    spatialMaskingFlagValue.setValue("0");
+    if (first)
+    {
+        numSpatialBinsValue.setValue("128");
+        numFreqBinsValue.setValue("40");
+        numTracksValue.setValue("4");
+        intensityScalingConstantValue.setValue("150");
+        intensityCutoffConstantValue.setValue("10");
+        timeDecayConstantValue.setValue("0.94");
+        freqMaskingFlagValue.setValue("0");
+        spatialMaskingFlagValue.setValue("0");
+    }
 
     // add text fields to main window
     //comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (Fixed)", 20, false));
     //comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (Fixed)", 20, false));
-    comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (2)", 20, false));
-    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (100)", 20, false));
-    comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (5)", 20, false));
-    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.5)", 20, false));
+    comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (4)", 20, false));
+    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (150)", 20, false));
+    comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (10)", 20, false));
+    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.95)", 20, false));
     comps.add (new TextPropertyComponent (freqMaskingFlagValue, "Frequency Masking (1 -> on, 0 -> off)", 20, false));
     comps.add (new TextPropertyComponent (spatialMaskingFlagValue, "Spatial Masking (1 -> on, 0 -> off)", 20, false));
     return comps;
 }
+
+Array<PropertyComponent*> MainWindow::createTracks(int numTracks)
+{
+    Array<PropertyComponent*> comps;
+    TextPropertyComponent* comp;
+    for (int i = 0; i < numTracks; ++i)
+    {
+        comp = new TextPropertyComponent (Value ("Name"+String(i)), "Track"+String(i), 20, false);
+        comp->setColour(0x100e401, Colour(0.5f, 1.0f, 1.0f));
+        comps.add(comp);
+    }
+    return comps;
+}
+
 //[/MiscUserDefs]
 
 //==============================================================================
@@ -77,7 +94,7 @@ MainWindow::MainWindow ()
 	{
 		audioIODeviceType->scanForDevices();
 		StringArray deviceNames (audioIODeviceType->getDeviceNames());
-        textEditor->insertTextAtCaret(deviceNames[0]);
+     file:///home/jon/JUCE/html/classjuce_1_1BigInteger.html   textEditor->insertTextAtCaret(deviceNames[0]);
 		audioIODevice = audioIODeviceType->createDevice(deviceNames[0],deviceNames[0]);
 	} else {
 		textEditor->insertTextAtCaret("Error, could not open Jack audio device. Is your Jack Server running?\n");
@@ -85,7 +102,8 @@ MainWindow::MainWindow ()
 
     // make the settings panel for the visualizer
     addAndMakeVisible (settings = new PropertyPanel());
-    settings->addSection ("Settings", createSettings());
+    settings->addSection ("Settings", createSettings(true));
+    settings->addSection ("Tracks", createTracks(4));
 
     // makes a new visualizer with default settings
 	addAndMakeVisible (visualizer = new Visualizer());
@@ -137,8 +155,8 @@ void MainWindow::resized()
     startButton->setBounds (408, 0, 150, 24);
     textEditor->setBounds (0, 0, 400, 24);
     //[UserResized] Add your own custom resize handling here..
-    visualizer->setBounds(0,300,600,600);
-    settings->setBounds(0,25,600,275);
+    visualizer->setBounds(0,400,600,600);
+    settings->setBounds(0,25,600,400);
     //[/UserResized]
 }
 
@@ -162,7 +180,9 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, freqMaskingFlag, spatialMaskingFlag);
 
         // build the panel with the tracks and their colors
-
+        settings->clear();
+        settings->addSection("Settings", createSettings(false));
+        settings->addSection("Tracks", createTracks(numTracks));
         //[/UserButtonCode_startButton]
     }
 
