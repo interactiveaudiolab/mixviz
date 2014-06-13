@@ -42,8 +42,8 @@ Array<PropertyComponent*> MainWindow::createSettings()
     spatialMaskingFlagValue.setValue("0");
 
     // add text fields to main window
-    comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (Fixed)", 20, false));
-    comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (Fixed)", 20, false));
+    //comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (Fixed)", 20, false));
+    //comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (Fixed)", 20, false));
     comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (2)", 20, false));
     comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (100)", 20, false));
     comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (5)", 20, false));
@@ -160,7 +160,9 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         const int freqMaskingFlag = (int) freqMaskingFlagValue.getValue();
         const int spatialMaskingFlag = (int) spatialMaskingFlagValue.getValue();
         visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, freqMaskingFlag, spatialMaskingFlag);
-        //
+
+        // build the panel with the tracks and their colors
+
         //[/UserButtonCode_startButton]
     }
 
