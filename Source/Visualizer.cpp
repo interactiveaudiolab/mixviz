@@ -28,7 +28,7 @@ Visualizer::Visualizer()
     startTimer(1000/30);
 
     // give settings default values
-    changeSettings(2, 128, 40, 100.0f, 5.0f, 0.5, 0, 0);
+    changeSettings(4, 128, 40, 150.0f, 10.0f, 0.94, 0, 0);
 
     // initialize fft plans
     fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);

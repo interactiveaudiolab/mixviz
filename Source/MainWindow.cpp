@@ -63,7 +63,7 @@ Array<PropertyComponent*> MainWindow::createTracks(int numTracks)
     for (int i = 0; i < numTracks; ++i)
     {
         comp = new TextPropertyComponent (Value ("Name"+String(i)), "Track"+String(i), 20, false);
-        comp->setColour(0x100e401, Colour(0.5f, 1.0f, 1.0f));
+        comp->setColour(PropertyComponent::backgroundColourId, Colour((float) i / (float) numTracks, 1.0f, 1.0f, 1.0f));
         comps.add(comp);
     }
     return comps;
