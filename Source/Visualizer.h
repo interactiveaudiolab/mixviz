@@ -37,8 +37,10 @@ public:
 
 private:
     // fft input arrays: real arrays containing audio samples
-    double fftInputL[1024];
-    double fftInputR[1024];
+    double targetL[1024];
+    double targetR[1024];
+    double maskerL[1024];
+    double maskerR[1024];
 
     // fft output arrays containing complex numbers
     fftw_complex fftOutputL[513];
@@ -81,12 +83,6 @@ private:
     double rowBuffer[128];
     double freqConvBuffer[523]; // 523 + 11 - 1
     double spatialConvBuffer[138]; // 128 + 11 - 1
-
-    // gammatone filter bank and outputs
-    double gammatoneFilter[40][513];
-    double cutoffFreqs[40];
-    double filterOutputL[40];
-    double filterOutputR[40];
     
     // info about the audio device this component is recieving input from
     double fs;
@@ -100,9 +96,6 @@ private:
     int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
     Colour intensityToColour(const float intensity, const int track);
     void runMaskingModel();
-    void calculateFreqMasking(const int track);
-    void calculateSpatialMasking(const int track);
-    void makeGammatoneFilters();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

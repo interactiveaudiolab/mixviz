@@ -30,10 +30,6 @@ Visualizer::Visualizer()
     // give settings default values
     changeSettings(4, 128, 40, 150.0f, 10.0f, 0.94, 0, 0);
 
-    // initialize fft plans
-    fftL = fftw_plan_dft_r2c_1d(1024, fftInputL, fftOutputL, FFTW_MEASURE);
-    fftR = fftw_plan_dft_r2c_1d(1024, fftInputR, fftOutputR, FFTW_MEASURE);
-
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
         spatialGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
@@ -42,9 +38,7 @@ Visualizer::Visualizer()
 }
 
 Visualizer::~Visualizer()
-{    
-    fftw_destroy_plan(fftL);
-    fftw_destroy_plan(fftR);
+{
 }
 
 void Visualizer::changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag)
@@ -68,10 +62,6 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     cout << "active channels: " << numActiveChannels << endl;
     fs = device->getCurrentSampleRate();
 
-    makeGammatoneFilters();
-    clearMaskingOutput();
-    clearMaskingInput();
-
     for (int row = 0; row < numFreqBins; ++row)
         colBuffer[row] = 0;
     for (int col = 0; col < numSpatialBins; ++col)
@@ -87,63 +77,37 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                                         float** outputChannelData, int numOutputChannels,
                                         int numSamples)
 {
-    // clear the input buffer
-    clearMaskingInput();
-
-    // for each stereo track, analyze!
-    for (int track = 0; track < numTracks; ++track)
+    // for each target track, analyze
+    for (int targetTrack = 0; targetTrack < numTracks; ++targetTrack)
     {
         // copy input L and R channel data into our input sample buffer
+        // also set the maskerL and maskerR buffers to 0
         for (int i = 0; i < numSamples; ++i)
         {
-            fftInputR[i] = (double) inputChannelData[2*track][i];
-            fftInputL[i] = (double) inputChannelData[2*track+1][i];
+            targetR[i] = (double) inputChannelData[2*targetTrack][i];
+            targetL[i] = (double) inputChannelData[2*targetTrack+1][i];
+            maskerR[i] = 0;
+            maskerL[i] = 0;
         }
 
-        // perform all the FFTs and calculate magnitudes
-        fftw_execute(fftL);
-        fftw_execute(fftR);
-        for (int freq=0; freq < 513; ++freq)
+        // sum the signal for all tracks that aren't the target
+        for (int maskerTrack = 0; maskerTrack < numTracks; ++maskerTrack)
         {
-            fftMagnitudesL[freq] = sqrt(pow(fftOutputL[freq][0],2.0) + pow(fftOutputL[freq][1],2.0));
-            fftMagnitudesR[freq] = sqrt(pow(fftOutputR[freq][0],2.0) + pow(fftOutputR[freq][1],2.0));
-        }
-        
-        // perform matrix multiply with magnitudes to get gammatone bins
-        const int m = numFreqBins;
-        const int c = 513;
-        const int n = 1;
-        for (int i = 0; i < m; ++i)
-        {
-            for (int j = 0; j < n; ++j)
+            if (maskerTrack != targetTrack)
             {
-                filterOutputL[i] = 0;
-                filterOutputR[i] = 0;
-                for (int k = 0; k < c; ++k)
+                for (int i = 0; i < numSamples; ++i)
                 {
-                    const double filterVal = gammatoneFilter[i][k];
-                    filterOutputL[i] += filterVal * fftMagnitudesL[k];
-                    filterOutputR[i] += filterVal * fftMagnitudesR[k];
+                    maskerR[i] += (double) inputChannelData[2*targetTrack][i];
+                    maskerL[i] += (double) inputChannelData[2*targetTrack+1][i];
                 }
             }
         }
 
-        // time decay
-        for (int loc = 0; loc < numSpatialBins; ++loc)
-            for (int freq = 0; freq < numFreqBins; ++freq)
-                maskingInput[track][loc][freq] = timeDecayConstant * prevMaskingInput[track][loc][freq];
+        // feed target and masker into loudness model
 
-        // calculate spatial positions and update masking input
-        for (int freq = 0; freq < numFreqBins; ++freq)
-        {
-            const double magnitudeL = filterOutputL[freq];
-            const double magnitudeR = filterOutputR[freq];
-            const double magnitudeStereo = 10*log10(magnitudeL + magnitudeR);
+        // run the model
 
-            const int spatialBin = calculateSpatialBin(magnitudeL,magnitudeR);
-            if (magnitudeStereo > 0)
-                maskingInput[track][spatialBin][freq] += magnitudeStereo;
-        }
+        // put model output into a buffer
     }
 
     // We need to clear the output buffers before returning, in case they're full of junk..
@@ -365,99 +329,6 @@ void Visualizer::runMaskingModel()
             {
                 maskingOutput[track][loc][freq] = maskingInput[track][loc][freq];
             }
-        }
-    }
-}
-
-void Visualizer::calculateFreqMasking(const int track)
-{
-    // calculate the masking for each column
-    for (int col = 0; col < numSpatialBins; ++col)
-    {
-        for (int row = 0; row < numFreqBins; ++row)
-        {
-            // if this position is greater than 0, perform convolution
-            const double intensity = maskingInput[track][col][row];
-            if (intensity > 0)
-            {
-                for (int idx = 0; idx < 5; ++idx)
-                {
-                    const int j = row - 2 + idx;
-                    if (j > 0 && j < numFreqBins)
-                        colBuffer[j] += freqGaussian[idx]*intensity;
-                }
-            }
-        }
-        
-        // place buffer back into the column and clear buffer
-        for (int row = 0; row < numFreqBins; ++row)
-        {
-            maskingInput[track][col][row] = colBuffer[row];
-            colBuffer[row]=0;
-        }
-    }
-}
-
-void Visualizer::calculateSpatialMasking(const int track)
-{
-    // calculate masking for each row
-    for (int row = 0; row < numFreqBins; ++row)
-    {
-        for (int col = 0; col < numSpatialBins; ++col)
-        {
-            // if this position is greater than 0, perform convolution
-            const double intensity = maskingInput[track][col][row];
-            if (intensity > 0)
-            {
-                for (int idx = 0; idx < 11; ++idx)
-                {
-                    const int j = col - 5 + idx;
-                    if (j > 0 && j < numSpatialBins)
-                        rowBuffer[j] += spatialGaussian[idx]*intensity;
-                }
-            }
-        }
-
-        // place buffer back into the row
-        for (int col = 0; col < numSpatialBins; ++col)
-        {
-            maskingInput[track][col][row] = rowBuffer[col];
-            rowBuffer[col] = 0;
-        }
-    }
-}
-
-void Visualizer::makeGammatoneFilters()
-{
-    int filter = 0;
-    int i = 0;
-    float num = 0;
-
-    // read in gammatone filter data, precomputed with 40 bins and 1024 fft size
-    ifstream filtertxt;
-    filtertxt.open("gammatone_filter.txt");
-    for ( std::string line; std::getline(filtertxt,line);)
-    {
-        std::istringstream in(line);
-        while (in >> num)
-        {
-            gammatoneFilter[filter][i] = (double) num;
-            i = (i + 1) % 513; 
-            if (i == 0)
-                filter++;
-        }
-    }
-
-    // read in cutoff frequency data of those gammatone filters
-    ifstream cfreqstxt;
-    cfreqstxt.open("cutoff_freqs.txt");
-    for ( std::string line; std::getline(cfreqstxt,line);)
-    {
-        std::istringstream in(line);
-        while (in >> num)
-        {
-            cutoffFreqs[i] = (double) num;
-            i += 1;
         }
     }
 }
