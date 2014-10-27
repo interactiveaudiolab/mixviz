@@ -36,6 +36,12 @@ public:
                                 int numSamples) override;
 
 private:
+    // data structures for masking model
+    loudness::TrackBank *audioInputBank;
+    const loudness::TrackBank *roexBankOutput;
+    const loudness::TrackBank *partialLoudnessOutput;
+    loudness::DynamicPartialLoudnessGM *model;
+
     // fft input arrays: real arrays containing audio samples
     double targetL[1024];
     double targetR[1024];

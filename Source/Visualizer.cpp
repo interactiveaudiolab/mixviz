@@ -16,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <loudness/Models/DynamicPartialLoudnessGM.h>
 
 using namespace std;
 
@@ -35,10 +36,22 @@ Visualizer::Visualizer()
         spatialGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
     for (int i = -2; i < 3; ++i)
         freqGaussian[i+2] = exp(pow((float)i,2.0f)/-8.0f);
+
+    // initialize 
+    audioInputBank = new loudness::TrackBank(4, 1, 1024);
+
+    // create the model and initialize
+    model = new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy");
+    model->initialize(audioInputBank);
+
+    roexBankOutput = model->getModuleOutput(5);
+    partialLoudnessOutput = model->getModuleOutput(6);
 }
 
 Visualizer::~Visualizer()
 {
+    delete(model)
+
 }
 
 void Visualizer::changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag)
