@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <fftw3.h>
+#include <loudness/Models/DynamicPartialLoudnessGM.h>
 
 //==============================================================================
 /*
@@ -27,7 +28,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag);
+    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -37,28 +38,30 @@ public:
 
 private:
     // data structures for masking model
-    loudness::TrackBank *audioInputBank;
-    const loudness::TrackBank *roexBankOutput;
-    const loudness::TrackBank *partialLoudnessOutput;
-    loudness::DynamicPartialLoudnessGM *model;
+    // turn these into arbitrary sized vectors
+    std::vector<std::unique_ptr<loudness::TrackBank>> audioInputBankVector;
+    std::vector<loudness::TrackBank const *> roexBankOutputVector;
+    std::vector<loudness::TrackBank const *> partialLoudnessOutputVector;
+    std::vector<std::unique_ptr<loudness::DynamicPartialLoudnessGM>> modelVector;
+    int shouldPrint;
 
     // fft input arrays: real arrays containing audio samples
-    double targetL[1024];
-    double targetR[1024];
-    double maskerL[1024];
-    double maskerR[1024];
+    RealVec fftInputL;
+    RealVec fftInputR;
 
-    // fft output arrays containing complex numbers
-    fftw_complex fftOutputL[513];
-    fftw_complex fftOutputR[513];
+    // fft input arrays: real arrays containing audio samples
+    RealVec targetL;
+    RealVec targetR;
+    RealVec maskerL;
+    RealVec maskerR;
 
     // fft output with phase info removed
-    double fftMagnitudesL[513];
-    double fftMagnitudesR[513];
+    RealVec fftMagnitudesL;
+    RealVec fftMagnitudesR;
 
     // "settings" constants
-    int numSpatialBins;
     int numFreqBins;
+    int numSpatialBins;
     int numTracks;
     float intensityScalingConstant;
     float intensityCutoffConstant;
@@ -66,23 +69,9 @@ private:
     int freqMaskingFlag;
     int spatialMaskingFlag;
 
-    // fft plans
-    fftw_plan fftL;
-    fftw_plan fftR;
-    fftw_plan fftStereo;
-    
-    // masking model input and output buffers
-    double maskingInput[4][128][40];
-    double prevMaskingInput[4][128][40];
-    double maskingOutput[4][128][40];
-
     // dummy convolution model
     double freqGaussian[5];
     double spatialGaussian[11];
-
-    // functions to clear masking model input and output buffers
-    void clearMaskingInput();
-    void clearMaskingOutput();
 
     // other buffers used in masking models
     double colBuffer[40];

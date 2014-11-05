@@ -29,7 +29,7 @@ Visualizer::Visualizer()
     startTimer(1000/30);
 
     // give settings default values
-    changeSettings(4, 128, 40, 150.0f, 10.0f, 0.94, 0, 0);
+    changeSettings(4, 128, 150.0f, 10.0f, 0.94);
 
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
@@ -37,33 +37,39 @@ Visualizer::Visualizer()
     for (int i = -2; i < 3; ++i)
         freqGaussian[i+2] = exp(pow((float)i,2.0f)/-8.0f);
 
-    // initialize 
-    audioInputBank = new loudness::TrackBank(4, 1, 1024);
+    targetL.resize(1024);
+    targetR.resize(1024);
+    maskerL.resize(1024);
+    maskerR.resize(1024);
 
-    // create the model and initialize
-    model = new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy");
-    model->initialize(audioInputBank);
+    shouldPrint = 0;
 
-    roexBankOutput = model->getModuleOutput(5);
-    partialLoudnessOutput = model->getModuleOutput(6);
+    // initialize objects
+    for (int track = 0; track < numTracks; ++track)
+    {
+        audioInputBankVector.push_back(std::unique_ptr<loudness::TrackBank> (new loudness::TrackBank()));
+        audioInputBankVector[track]->initialize(4, 1, 1024, 48000);
+
+        modelVector.push_back(std::unique_ptr<loudness::DynamicPartialLoudnessGM> (new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy")));
+        modelVector[track]->initialize(*audioInputBankVector[track]);
+
+        roexBankOutputVector.push_back(modelVector[track]->getModuleOutput(5));
+        partialLoudnessOutputVector.push_back(modelVector[track]->getModuleOutput(6));
+    }
+    numFreqBins = roexBankOutputVector[0]->getNChannels();
 }
 
 Visualizer::~Visualizer()
 {
-    delete(model)
-
 }
 
-void Visualizer::changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag)
+void Visualizer::changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_)
 {
-    numTracks = tracks;
-    numSpatialBins = spatialBins;
-    numFreqBins = freqBins;
-    intensityScalingConstant = intensityScaling;
-    intensityCutoffConstant = intensityCutoff;
-    timeDecayConstant = timeDecay;
-    freqMaskingFlag = freqFlag;
-    spatialMaskingFlag = spatialFlag;
+    numTracks = numTracks_;
+    numSpatialBins = numSpatialBins_;
+    intensityScalingConstant = intensityScalingConstant_;
+    intensityCutoffConstant = intensityCutoffConstant_;
+    timeDecayConstant = timeDecayConstant_;
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -90,37 +96,48 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                                         float** outputChannelData, int numOutputChannels,
                                         int numSamples)
 {
-    // for each target track, analyze
-    for (int targetTrack = 0; targetTrack < numTracks; ++targetTrack)
+    // analyze each target
+    for (int target = 0; target < numTracks; ++target)
     {
         // copy input L and R channel data into our input sample buffer
         // also set the maskerL and maskerR buffers to 0
         for (int i = 0; i < numSamples; ++i)
         {
-            targetR[i] = (double) inputChannelData[2*targetTrack][i];
-            targetL[i] = (double) inputChannelData[2*targetTrack+1][i];
-            maskerR[i] = 0;
-            maskerL[i] = 0;
+            audioInputBankVector[target]->setSample(0, 0, i, (double) inputChannelData[0][i]); // track 0
+            audioInputBankVector[target]->setSample(1, 0, i, (double) inputChannelData[1][i]); // track 1
+            audioInputBankVector[target]->setSample(2, 0, i, 0); // track 2
+            audioInputBankVector[target]->setSample(3, 0, i, 0); // track 3
         }
 
-        // sum the signal for all tracks that aren't the target
-        for (int maskerTrack = 0; maskerTrack < numTracks; ++maskerTrack)
+        // sum signals for other tracks to get masker
+        for (int masker = 0; masker < numTracks; ++masker)
         {
-            if (maskerTrack != targetTrack)
+            if (masker != target)
             {
                 for (int i = 0; i < numSamples; ++i)
                 {
-                    maskerR[i] += (double) inputChannelData[2*targetTrack][i];
-                    maskerL[i] += (double) inputChannelData[2*targetTrack+1][i];
+                    audioInputBankVector[target]->sumSample(2, 0, i, (double) inputChannelData[2][i]);
+                    audioInputBankVector[target]->sumSample(3, 0, i, (double) inputChannelData[3][i]);
                 }
             }
         }
 
-        // feed target and masker into loudness model
-
         // run the model
+        modelVector[target]->process(*audioInputBankVector[target]);
 
-        // put model output into a buffer
+        if (shouldPrint == 0)
+        {
+            cout << "loudness and partial loudness for target track:\t" << target << endl;
+            for (int i = 0; i < partialLoudnessOutputVector[target]->getNChannels(); ++i)
+            {
+                cout << "lo: bin" << i << ":\t" << partialLoudnessOutputVector[target]->getSample(0, i, 0) << "\t";
+                cout << "pl: bin" << i << ":\t" << partialLoudnessOutputVector[target]->getSample(0, i, 1) << endl;
+            }
+        }
+        else
+        {
+            shouldPrint = (shouldPrint + 1) % 2000;
+        }
     }
 
     // We need to clear the output buffers before returning, in case they're full of junk..
@@ -132,7 +149,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    runMaskingModel();
     g.fillAll (Colours::white);   // clear the background
     const float leftBorder = 100.0f;
     const float rightBorder = 30.0f;
@@ -150,25 +166,21 @@ void Visualizer::paint (Graphics& g)
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
     
-    // draw the tracks
-    for (int track = 0; track < numTracks; ++track)
+    // draw the target tracks
+    for (int target = 0; target < numTracks; ++target)
     {
-        for (int x = 0; x < numSpatialBins; ++x)
+        for (int freq = 0; freq < numFreqBins; ++freq)
         {
-            for (int y = 0; y < numFreqBins; ++y)
+            const float intensity = (float) roexBankOutputVector[target]->getSample(0, freq, 0);
+            if (intensity > intensityCutoffConstant)
             {
-                const float intensity = (float) maskingOutput[track][x][y];
-                if (intensity > intensityCutoffConstant) 
-                {
-                    //cout << "x: " << x << "\t\ty: " << y << "\t\t i: " << intensity << endl; 
-                    const float xf = (float) x;
-                    const float yf = (float) y;
-                    g.setColour(intensityToColour(intensity,track));
-                    g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
-                                                ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
-                                                binWidth,
-                                                binHeight));
-                }
+                const float xf = (float) (maxXIndex / 2); // temporarily no spatial bins
+                const float yf = (float) freq;
+                g.setColour(intensityToColour(intensity,target));
+                g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                                            ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
+                                            binWidth,
+                                            binHeight));
             }
         }
     }
@@ -225,6 +237,7 @@ void Visualizer::paint (Graphics& g)
                 Justification(4),
                 true);
 
+    /*
     // draw cutoff frequency lines
     // first draw the 0
     g.drawFittedText ("Frequency (Hz)", Rectangle<int>(0,(int)(winHeight / 2.0f + topBorder), (int)(leftBorder/2.0f), (int)(winHeight/3.0f)), Justification(1), 10);
@@ -247,7 +260,7 @@ void Visualizer::paint (Graphics& g)
                     Justification(12),
                     true);
     }
-
+    */
 }
 
 void Visualizer::resized()
@@ -255,37 +268,6 @@ void Visualizer::resized()
     // This method is where you should set the bounds of any child
     // components that your component contains..
 }
-
-// sets masking input to 0's, saves previous masking input
-void Visualizer::clearMaskingInput()
-{
-    for (int track = 0; track < numTracks; ++track)
-    {
-        for (int loc = 0; loc < numSpatialBins; ++loc)
-        {
-            for (int freq = 0; freq < numFreqBins; ++freq)
-            {
-                prevMaskingInput[track][loc][freq] = maskingInput[track][loc][freq];
-                maskingInput[track][loc][freq] = 0;
-            }
-        }
-    }
-}
-
-void Visualizer::clearMaskingOutput()
-{
-    for (int track = 0; track < numTracks; ++track)
-    {
-        for (int loc = 0; loc < numSpatialBins; ++loc)
-        {
-            for (int freq = 0; freq < numFreqBins; ++freq)
-            {   
-                maskingOutput[track][loc][freq]=0;
-            }
-        }
-    }
-}
-    
 
 void Visualizer::timerCallback()
 {
@@ -321,27 +303,4 @@ int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitud
 Colour Visualizer::intensityToColour(const float intensity, const int track)
 {
     return Colour((float)track / (float)numTracks, intensity / intensityScalingConstant, 1.0f, 1.0f);
-}
-
-
-// executes the masking model on inputs
-void Visualizer::runMaskingModel()
-{
-    // run the masking model for each track then copy into output buffer
-    for (int track = 0; track < numTracks; ++track)
-    {
-
-        if (freqMaskingFlag)
-            calculateFreqMasking(track);
-        if (spatialMaskingFlag)
-            calculateSpatialMasking(track);
-
-        for (int loc = 0; loc < numSpatialBins; ++loc)
-        {
-            for (int freq = 0; freq < numFreqBins; ++freq)
-            {
-                maskingOutput[track][loc][freq] = maskingInput[track][loc][freq];
-            }
-        }
-    }
 }
