@@ -103,8 +103,8 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
         // also set the maskerL and maskerR buffers to 0
         for (int i = 0; i < numSamples; ++i)
         {
-            audioInputBankVector[target]->setSample(0, 0, i, (double) inputChannelData[0][i]); // track 0
-            audioInputBankVector[target]->setSample(1, 0, i, (double) inputChannelData[1][i]); // track 1
+            audioInputBankVector[target]->setSample(0, 0, i, (double) inputChannelData[target*2][i]); // track 0
+            audioInputBankVector[target]->setSample(1, 0, i, (double) inputChannelData[target*2 + 1][i]); // track 1
             audioInputBankVector[target]->setSample(2, 0, i, 0); // track 2
             audioInputBankVector[target]->setSample(3, 0, i, 0); // track 3
         }
@@ -116,8 +116,8 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             {
                 for (int i = 0; i < numSamples; ++i)
                 {
-                    audioInputBankVector[target]->sumSample(2, 0, i, (double) inputChannelData[2][i]);
-                    audioInputBankVector[target]->sumSample(3, 0, i, (double) inputChannelData[3][i]);
+                    audioInputBankVector[target]->sumSample(2, 0, i, (double) inputChannelData[masker*2][i]);
+                    audioInputBankVector[target]->sumSample(3, 0, i, (double) inputChannelData[masker*2 + 1][i]);
                 }
             }
         }
