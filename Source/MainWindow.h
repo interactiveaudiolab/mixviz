@@ -64,12 +64,10 @@ private:
     ScopedPointer<PropertyPanel> tracks;
     Value numTracksValue;
     Value numSpatialBinsValue;
-    Value numFreqBinsValue;
     Value intensityScalingConstantValue;
     Value intensityCutoffConstantValue;
     Value timeDecayConstantValue;
-    Value freqMaskingFlagValue;
-    Value spatialMaskingFlagValue;
+    Value maskingThresholdValue;
     //[/UserVariables]
 
     //==============================================================================

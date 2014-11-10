@@ -29,7 +29,7 @@ Visualizer::Visualizer()
     startTimer(1000/30);
 
     // give settings default values
-    changeSettings(4, 128, 150.0f, 10.0f, 0.94);
+    changeSettings(2, 128, 150.0f, 10.0f, 0.94, 1);
 
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
@@ -37,39 +37,33 @@ Visualizer::Visualizer()
     for (int i = -2; i < 3; ++i)
         freqGaussian[i+2] = exp(pow((float)i,2.0f)/-8.0f);
 
-    targetL.resize(1024);
-    targetR.resize(1024);
-    maskerL.resize(1024);
-    maskerR.resize(1024);
-
     shouldPrint = 0;
 
-    // initialize objects
-    for (int track = 0; track < numTracks; ++track)
-    {
-        audioInputBankVector.push_back(std::unique_ptr<loudness::TrackBank> (new loudness::TrackBank()));
-        audioInputBankVector[track]->initialize(4, 1, 1024, 48000);
+    audioInputBank = new loudness::TrackBank();
+    audioInputBank->initialize(4, 1, 1024, 48000);
 
-        modelVector.push_back(std::unique_ptr<loudness::DynamicPartialLoudnessGM> (new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy")));
-        modelVector[track]->initialize(*audioInputBankVector[track]);
+    model = new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy");
+    model->initialize(*audioInputBank);
 
-        roexBankOutputVector.push_back(modelVector[track]->getModuleOutput(5));
-        partialLoudnessOutputVector.push_back(modelVector[track]->getModuleOutput(6));
-    }
-    numFreqBins = roexBankOutputVector[0]->getNChannels();
+    stereoToMonoOutput = model->getModuleOutput(3);
+    roexBankOutput = model->getModuleOutput(6); // 5
+    partialLoudnessOutput = model->getModuleOutput(7); // 6
+
+    numFreqBins = roexBankOutput->getNChannels();
 }
 
 Visualizer::~Visualizer()
 {
 }
 
-void Visualizer::changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_)
+void Visualizer::changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_)
 {
     numTracks = numTracks_;
     numSpatialBins = numSpatialBins_;
     intensityScalingConstant = intensityScalingConstant_;
     intensityCutoffConstant = intensityCutoffConstant_;
     timeDecayConstant = timeDecayConstant_;
+    maskingThreshold = maskingThreshold_;
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -100,44 +94,25 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
     for (int target = 0; target < numTracks; ++target)
     {
         // copy input L and R channel data into our input sample buffer
-        // also set the maskerL and maskerR buffers to 0
         for (int i = 0; i < numSamples; ++i)
         {
-            audioInputBankVector[target]->setSample(0, 0, i, (double) inputChannelData[target*2][i]); // track 0
-            audioInputBankVector[target]->setSample(1, 0, i, (double) inputChannelData[target*2 + 1][i]); // track 1
-            audioInputBankVector[target]->setSample(2, 0, i, 0); // track 2
-            audioInputBankVector[target]->setSample(3, 0, i, 0); // track 3
+            audioInputBank->setSample(2*target, 0, i, (double) inputChannelData[target*2][i]); // right
+            audioInputBank->setSample(2*target+1, 0, i, (double) inputChannelData[target*2+1][i]); // left
         }
+    }
 
-        // sum signals for other tracks to get masker
-        for (int masker = 0; masker < numTracks; ++masker)
-        {
-            if (masker != target)
-            {
-                for (int i = 0; i < numSamples; ++i)
-                {
-                    audioInputBankVector[target]->sumSample(2, 0, i, (double) inputChannelData[masker*2][i]);
-                    audioInputBankVector[target]->sumSample(3, 0, i, (double) inputChannelData[masker*2 + 1][i]);
-                }
-            }
-        }
+    // run the model
+    model->process(*audioInputBank);
 
-        // run the model
-        modelVector[target]->process(*audioInputBankVector[target]);
-
-        if (shouldPrint == 0)
-        {
-            cout << "loudness and partial loudness for target track:\t" << target << endl;
-            for (int i = 0; i < partialLoudnessOutputVector[target]->getNChannels(); ++i)
-            {
-                cout << "lo: bin" << i << ":\t" << partialLoudnessOutputVector[target]->getSample(0, i, 0) << "\t";
-                cout << "pl: bin" << i << ":\t" << partialLoudnessOutputVector[target]->getSample(0, i, 1) << endl;
-            }
-        }
-        else
-        {
-            shouldPrint = (shouldPrint + 1) % 2000;
-        }
+    if (shouldPrint == 0)
+    {
+        std::cout << "Instantaneous Loudness\n";
+        for (int chn = 0; chn < partialLoudnessOutput->getNChannels(); chn++)
+            std::cout << " chn: " << chn << "lo:\t" << partialLoudnessOutput->getSample(0,chn,0) << "pl:\t" << partialLoudnessOutput->getSample(0,chn,1) << std::endl;
+    }
+    else
+    {
+        shouldPrint = (shouldPrint + 1) % 20000;
     }
 
     // We need to clear the output buffers before returning, in case they're full of junk..
@@ -158,7 +133,7 @@ void Visualizer::paint (Graphics& g)
     const float width = (float) getWidth();
     const float winHeight = height - bottomBorder - topBorder;
     const float winWidth = width - leftBorder - rightBorder;
-    const float maxXIndex = (float) numSpatialBins;
+    const float maxXIndex = 180.0f; // number of degrees
     const float maxYIndex = (float) numFreqBins;
     const float binHeight = winHeight / maxYIndex;
     const float binWidth = winWidth / maxXIndex;
@@ -166,15 +141,16 @@ void Visualizer::paint (Graphics& g)
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
     
-    // draw the target tracks
+    // draw the patterns for the target tracks
+    /*
     for (int target = 0; target < numTracks; ++target)
     {
         for (int freq = 0; freq < numFreqBins; ++freq)
         {
-            const float intensity = (float) roexBankOutputVector[target]->getSample(0, freq, 0);
+            const float intensity = (float) roexBankOutput->getSample(target, freq, 0);
             if (intensity > intensityCutoffConstant)
             {
-                const float xf = (float) (maxXIndex / 2); // temporarily no spatial bins
+                const float xf = (float) stereoToMonoOutput->getSpatialPosition(target, freq) + 90.0f; // add 90 so all values are positive
                 const float yf = (float) freq;
                 g.setColour(intensityToColour(intensity,target));
                 g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
@@ -184,6 +160,7 @@ void Visualizer::paint (Graphics& g)
             }
         }
     }
+    */
 
     // draw a line down the middle and around this box
     g.setColour(Colours::black);
@@ -272,32 +249,6 @@ void Visualizer::resized()
 void Visualizer::timerCallback()
 {
     repaint();
-}
-
-// given the magnitude of left and right channels, this function returns the correct spatial bin
-int Visualizer::calculateSpatialBin(const float magnitudeL, const float magnitudeR)
-{
-    // calculate ratios between the two channels
-    if (magnitudeL == 0)
-    {
-        // signal is all the way on the right 
-        return numSpatialBins-1;
-    }
-    else if (magnitudeR == 0)
-    {
-        // signal is all the way on the left
-        return 0;
-    }
-    else if (magnitudeL > magnitudeR)
-    {
-        // signal is partially on the left
-        return ((int) ((magnitudeR / magnitudeL) * (numSpatialBins / 2)));
-    }
-    else
-    {
-        // signal is partially on the right
-        return ((int) ((1 - (magnitudeL / magnitudeR)) * (numSpatialBins / 2)) + (numSpatialBins / 2 - 1));
-    }
 }
 
 Colour Visualizer::intensityToColour(const float intensity, const int track)

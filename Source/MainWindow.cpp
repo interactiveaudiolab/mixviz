@@ -39,6 +39,7 @@ Array<PropertyComponent*> MainWindow::createSettings(bool first)
         intensityScalingConstantValue.setValue("150");
         intensityCutoffConstantValue.setValue("10");
         timeDecayConstantValue.setValue("0.94");
+        maskingThresholdValue.setValue("1");
     }
 
     // add text fields to main window
@@ -48,6 +49,7 @@ Array<PropertyComponent*> MainWindow::createSettings(bool first)
     comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (150)", 20, false));
     comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (10)", 20, false));
     comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.95)", 20, false));
+    comps.add (new TextPropertyComponent (maskingThresholdValue, "Masking Threshold (1)", 20, false));
     return comps;
 }
 
@@ -169,7 +171,8 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         const float intensityScalingConstant = (float) intensityScalingConstantValue.getValue();
         const float intensityCutoffConstant = (float) intensityCutoffConstantValue.getValue();
         const double timeDecayConstant = (double) timeDecayConstantValue.getValue();
-        visualizer->changeSettings(numTracks, numSpatialBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant);
+        const double maskingThreshold = (double) maskingThresholdValue.getValue();
+        visualizer->changeSettings(numTracks, numSpatialBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, maskingThreshold);
 
         // build the panel with the tracks and their colors
         settings->clear();

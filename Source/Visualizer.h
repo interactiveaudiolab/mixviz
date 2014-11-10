@@ -28,7 +28,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_);
+    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -39,25 +39,12 @@ public:
 private:
     // data structures for masking model
     // turn these into arbitrary sized vectors
-    std::vector<std::unique_ptr<loudness::TrackBank>> audioInputBankVector;
-    std::vector<loudness::TrackBank const *> roexBankOutputVector;
-    std::vector<loudness::TrackBank const *> partialLoudnessOutputVector;
-    std::vector<std::unique_ptr<loudness::DynamicPartialLoudnessGM>> modelVector;
+    loudness::TrackBank *audioInputBank;
+    const loudness::TrackBank *stereoToMonoOutput;
+    const loudness::TrackBank *roexBankOutput;
+    const loudness::TrackBank *partialLoudnessOutput;
+    loudness::DynamicPartialLoudnessGM *model;
     int shouldPrint;
-
-    // fft input arrays: real arrays containing audio samples
-    RealVec fftInputL;
-    RealVec fftInputR;
-
-    // fft input arrays: real arrays containing audio samples
-    RealVec targetL;
-    RealVec targetR;
-    RealVec maskerL;
-    RealVec maskerR;
-
-    // fft output with phase info removed
-    RealVec fftMagnitudesL;
-    RealVec fftMagnitudesR;
 
     // "settings" constants
     int numFreqBins;
@@ -66,8 +53,7 @@ private:
     float intensityScalingConstant;
     float intensityCutoffConstant;
     double timeDecayConstant;
-    int freqMaskingFlag;
-    int spatialMaskingFlag;
+    double maskingThreshold;
 
     // dummy convolution model
     double freqGaussian[5];
@@ -88,9 +74,7 @@ private:
     void timerCallback() override;
 
     // useful helper functions
-    int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
     Colour intensityToColour(const float intensity, const int track);
-    void runMaskingModel();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };
