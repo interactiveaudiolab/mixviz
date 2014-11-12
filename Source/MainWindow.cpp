@@ -100,7 +100,7 @@ MainWindow::MainWindow ()
     // make the settings panel for the visualizer
     addAndMakeVisible (settings = new PropertyPanel());
     settings->addSection ("Settings", createSettings(true));
-    settings->addSection ("Tracks", createTracks(4));
+    settings->addSection ("Tracks", createTracks(2));
 
     // makes a new visualizer with default settings
 	addAndMakeVisible (visualizer = new Visualizer());

@@ -29,7 +29,7 @@ Visualizer::Visualizer()
     startTimer(1000/30);
 
     // give settings default values
-    changeSettings(2, 128, 150.0f, 10.0f, 0.94, 1);
+    changeSettings(2, 128, 150.0f, 10.0f, 0.94, 2);
 
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
@@ -90,7 +90,10 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                                         float** outputChannelData, int numOutputChannels,
                                         int numSamples)
 {
-    // analyze each target
+    double lo = 0;
+    double pl = 0;
+
+    // for each track
     for (int target = 0; target < numTracks; ++target)
     {
         // copy input L and R channel data into our input sample buffer
@@ -108,7 +111,11 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
     {
         std::cout << "Instantaneous Loudness\n";
         for (int chn = 0; chn < partialLoudnessOutput->getNChannels(); chn++)
-            std::cout << " chn: " << chn << "lo:\t" << partialLoudnessOutput->getSample(0,chn,0) << "pl:\t" << partialLoudnessOutput->getSample(0,chn,1) << std::endl;
+        {
+            lo += partialLoudnessOutput->getSample(0,chn,0);
+            pl += partialLoudnessOutput->getSample(0,chn,1);
+        }
+        cout << "lo: " << lo << " pl: " << pl << endl;
     }
     else
     {
@@ -142,7 +149,6 @@ void Visualizer::paint (Graphics& g)
     const float tickHeight = 5.0f;
     
     // draw the patterns for the target tracks
-    /*
     for (int target = 0; target < numTracks; ++target)
     {
         for (int freq = 0; freq < numFreqBins; ++freq)
@@ -152,7 +158,16 @@ void Visualizer::paint (Graphics& g)
             {
                 const float xf = (float) stereoToMonoOutput->getSpatialPosition(target, freq) + 90.0f; // add 90 so all values are positive
                 const float yf = (float) freq;
-                g.setColour(intensityToColour(intensity,target));
+
+                // if there is masking, colour is black
+                if (log(partialLoudnessOutput->getSample(target, freq, 0)) - log(partialLoudnessOutput->getSample(target, freq, 1)) > maskingThreshold)
+                {
+                    g.setColour(Colours::black);
+                }
+                else
+                {
+                    g.setColour(intensityToColour(intensity,target));
+                }
                 g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                             ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                             binWidth,
@@ -160,7 +175,6 @@ void Visualizer::paint (Graphics& g)
             }
         }
     }
-    */
 
     // draw a line down the middle and around this box
     g.setColour(Colours::black);
