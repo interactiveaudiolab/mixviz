@@ -29,7 +29,8 @@ Visualizer::Visualizer()
     startTimer(1000/30);
 
     // give settings default values
-    changeSettings(2, 128, 150.0f, 10.0f, 0.94, 2);
+    numTracks = 4;
+    changeSettings(numTracks, 128, 5000.0f, 10.0f, 0.70, 6);
 
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
@@ -40,7 +41,7 @@ Visualizer::Visualizer()
     shouldPrint = 0;
 
     audioInputBank = new loudness::TrackBank();
-    audioInputBank->initialize(4, 1, 1024, 48000);
+    audioInputBank->initialize(numTracks * 2, 1, 1024, 48000);
 
     model = new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy");
     model->initialize(*audioInputBank);
@@ -50,6 +51,13 @@ Visualizer::Visualizer()
     partialLoudnessOutput = model->getModuleOutput(5);
 
     numFreqBins = roexBankOutput->getNChannels();
+    output.resize(numTracks + 1);
+    for (int track = 0; track < numTracks+1; track++)
+    {
+        output[track].resize(numFreqBins);
+        for (int freq = 0; freq < numFreqBins; freq++)
+            output[track][freq].assign(180, 0);
+    }
 }
 
 Visualizer::~Visualizer()
@@ -147,34 +155,68 @@ void Visualizer::paint (Graphics& g)
     const float textWidth = 50.0f;
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
+
+    // apply time decay to current output
+    for (int track = 0; track < numTracks+1; ++track)
+        for (int freq = 0; freq < numFreqBins; ++freq)
+            for (int pos = 0; pos < 180; ++pos)
+                output[track][freq][pos] *= timeDecayConstant;
+
     
-    // draw the patterns for the target tracks
-    for (int target = 0; target < numTracks; ++target)
+    // add current loudness values into output matrix
+    for (int track = 0; track < numTracks; ++track)
     {
         for (int freq = 0; freq < numFreqBins; ++freq)
         {
-            const float intensity = (float) roexBankOutput->getSample(target, freq, 0);
+            const float intensity = (float) roexBankOutput->getSample(track, freq, 0);
             if (intensity > intensityCutoffConstant)
             {
-                const float xf = (float) powerSpectrumOutput->getSpatialPosition(target, freq) + 90.0f; // add 90 so all values are positive
-                const float yf = (float) freq;
+                const int spatialBin = (int) powerSpectrumOutput->getSpatialPosition(track, freq);
 
                 // if there is masking, colour is black
-                if (log(partialLoudnessOutput->getSample(target, freq, 0)) - log(partialLoudnessOutput->getSample(target, freq, 1)) > maskingThreshold)
+                if (log(partialLoudnessOutput->getSample(track, freq, 0)) - log(partialLoudnessOutput->getSample(track, freq, 1)) > maskingThreshold)
                 {
-                    g.setColour(Colours::black);
+                    output[numTracks][freq][spatialBin] += intensity;
                 }
                 else
                 {
-                    g.setColour(intensityToColour(intensity,target));
+                    output[track][freq][spatialBin] += intensity;
                 }
-                g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
-                                            ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
-                                            binWidth,
-                                            binHeight));
+                
             }
         }
     }
+
+    // draw the current output matrix
+    for (int track = 0; track < numTracks+1; ++track)
+    {
+        for (int freq = 0; freq < numFreqBins; ++freq)
+        {
+            for (int pos = 0; pos < 180; ++pos)
+            {
+                const float intensity = output[track][freq][pos];
+                if (intensity > intensityCutoffConstant)
+                {
+                    const float xf = (float) pos; // add 90 so all values are positive
+                    const float yf = (float) freq;
+                    if (track == numTracks)
+                    {
+                        g.setColour(Colours::black);
+                    }
+                    else
+                    {
+                        g.setColour(intensityToColour(intensity,track));
+                    }
+
+                    g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                                            ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
+                                            binWidth,
+                                            binHeight));
+                }
+            }
+        }
+    }
+
 
     // draw a line down the middle and around this box
     g.setColour(Colours::black);

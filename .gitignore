@@ -1,5 +1,5 @@
 # ignore build files
-Build/Linux/build/*
+Build/Linux/build/MixVis
 
 # ignore .swp files
 *.swp

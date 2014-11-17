@@ -34,22 +34,21 @@ Array<PropertyComponent*> MainWindow::createSettings(bool first)
     // initialize constants to default values
     if (first)
     {
-        numSpatialBinsValue.setValue("128");
         numTracksValue.setValue("4");
-        intensityScalingConstantValue.setValue("150");
+        intensityScalingConstantValue.setValue("5000");
         intensityCutoffConstantValue.setValue("10");
-        timeDecayConstantValue.setValue("0.94");
-        maskingThresholdValue.setValue("1");
+        timeDecayConstantValue.setValue("0.70");
+        maskingThresholdValue.setValue("6");
     }
 
     // add text fields to main window
     //comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (Fixed)", 20, false));
     //comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (Fixed)", 20, false));
     comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (4)", 20, false));
-    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (150)", 20, false));
+    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (5000)", 20, false));
     comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (10)", 20, false));
-    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.95)", 20, false));
-    comps.add (new TextPropertyComponent (maskingThresholdValue, "Masking Threshold (1)", 20, false));
+    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.70)", 20, false));
+    comps.add (new TextPropertyComponent (maskingThresholdValue, "Masking Threshold (6)", 20, false));
     return comps;
 }
 
@@ -100,7 +99,7 @@ MainWindow::MainWindow ()
     // make the settings panel for the visualizer
     addAndMakeVisible (settings = new PropertyPanel());
     settings->addSection ("Settings", createSettings(true));
-    settings->addSection ("Tracks", createTracks(2));
+    settings->addSection ("Tracks", createTracks(4));
 
     // makes a new visualizer with default settings
 	addAndMakeVisible (visualizer = new Visualizer());

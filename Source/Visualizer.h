@@ -44,6 +44,7 @@ private:
     const loudness::TrackBank *roexBankOutput;
     const loudness::TrackBank *partialLoudnessOutput;
     loudness::DynamicPartialLoudnessGM *model;
+    std::vector <std::vector <std::vector<double>> > output; // [track][freq][pos]
     int shouldPrint;
 
     // "settings" constants
