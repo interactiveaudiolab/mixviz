@@ -1,5 +1,5 @@
 # ignore build files
-Build/Linux/build/
+Build/Linux/build/*
 
 # ignore .swp files
 *.swp
