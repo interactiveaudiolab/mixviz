@@ -45,9 +45,9 @@ Visualizer::Visualizer()
     model = new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy");
     model->initialize(*audioInputBank);
 
-    stereoToMonoOutput = model->getModuleOutput(3);
-    roexBankOutput = model->getModuleOutput(6); // 5
-    partialLoudnessOutput = model->getModuleOutput(7); // 6
+    powerSpectrumOutput = model->getModuleOutput(2);
+    roexBankOutput = model->getModuleOutput(4);
+    partialLoudnessOutput = model->getModuleOutput(5);
 
     numFreqBins = roexBankOutput->getNChannels();
 }
@@ -156,7 +156,7 @@ void Visualizer::paint (Graphics& g)
             const float intensity = (float) roexBankOutput->getSample(target, freq, 0);
             if (intensity > intensityCutoffConstant)
             {
-                const float xf = (float) stereoToMonoOutput->getSpatialPosition(target, freq) + 90.0f; // add 90 so all values are positive
+                const float xf = (float) powerSpectrumOutput->getSpatialPosition(target, freq) + 90.0f; // add 90 so all values are positive
                 const float yf = (float) freq;
 
                 // if there is masking, colour is black

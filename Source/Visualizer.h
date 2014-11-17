@@ -40,7 +40,7 @@ private:
     // data structures for masking model
     // turn these into arbitrary sized vectors
     loudness::TrackBank *audioInputBank;
-    const loudness::TrackBank *stereoToMonoOutput;
+    const loudness::TrackBank *powerSpectrumOutput;
     const loudness::TrackBank *roexBankOutput;
     const loudness::TrackBank *partialLoudnessOutput;
     loudness::DynamicPartialLoudnessGM *model;
