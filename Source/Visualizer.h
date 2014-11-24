@@ -28,7 +28,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_);
+    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_, const bool detectionMode_);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -43,6 +43,7 @@ private:
     const loudness::TrackBank *powerSpectrumOutput;
     const loudness::TrackBank *roexBankOutput;
     const loudness::TrackBank *partialLoudnessOutput;
+    const loudness::TrackBank *integratedLoudnessOutput;
     loudness::DynamicPartialLoudnessGM *model;
     std::vector <std::vector <std::vector<double>> > output; // [track][freq][pos]
     int shouldPrint;
@@ -55,6 +56,7 @@ private:
     float intensityCutoffConstant;
     double timeDecayConstant;
     double maskingThreshold;
+    bool detectionMode;
 
     // dummy convolution model
     double freqGaussian[5];
@@ -75,7 +77,8 @@ private:
     void timerCallback() override;
 
     // useful helper functions
-    Colour intensityToColour(const float intensity, const int track);
+    Colour trackIntensityToColour(const float intensity, const int track);
+    Colour maskerIntensityToColour(const float intensity, const int track);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

@@ -30,7 +30,7 @@ Visualizer::Visualizer()
 
     // give settings default values
     numTracks = 4;
-    changeSettings(numTracks, 128, 5000.0f, 10.0f, 0.70, 6);
+    changeSettings(numTracks, 128, 5000.0f, 10.0f, 0.70, 6, 0);
 
     //initialize gaussians
     for (int i = -5; i < 6; ++i)
@@ -49,10 +49,11 @@ Visualizer::Visualizer()
     powerSpectrumOutput = model->getModuleOutput(2);
     roexBankOutput = model->getModuleOutput(4);
     partialLoudnessOutput = model->getModuleOutput(5);
+    integratedLoudnessOutput = model->getModuleOutput(6);
 
     numFreqBins = roexBankOutput->getNChannels();
-    output.resize(numTracks + 1);
-    for (int track = 0; track < numTracks+1; track++)
+    output.resize(numTracks * 2);
+    for (int track = 0; track < numTracks * 2; track++)
     {
         output[track].resize(numFreqBins);
         for (int freq = 0; freq < numFreqBins; freq++)
@@ -64,7 +65,13 @@ Visualizer::~Visualizer()
 {
 }
 
-void Visualizer::changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_)
+void Visualizer::changeSettings(const int numTracks_,
+                                const int numSpatialBins_,
+                                const float intensityScalingConstant_,
+                                const float intensityCutoffConstant_,
+                                const double timeDecayConstant_,
+                                const double maskingThreshold_,
+                                const bool detectionMode_)
 {
     numTracks = numTracks_;
     numSpatialBins = numSpatialBins_;
@@ -72,6 +79,7 @@ void Visualizer::changeSettings(const int numTracks_, const int numSpatialBins_,
     intensityCutoffConstant = intensityCutoffConstant_;
     timeDecayConstant = timeDecayConstant_;
     maskingThreshold = maskingThreshold_;
+    detectionMode = detectionMode_;
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -98,9 +106,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                                         float** outputChannelData, int numOutputChannels,
                                         int numSamples)
 {
-    double lo = 0;
-    double pl = 0;
-
     // for each track
     for (int target = 0; target < numTracks; ++target)
     {
@@ -115,19 +120,35 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
     // run the model
     model->process(*audioInputBank);
 
-    if (shouldPrint == 0)
+    // apply time decay to current output
+    for (int track = 0; track < numTracks * 2; ++track)
+        for (int freq = 0; freq < numFreqBins; ++freq)
+            for (int pos = 0; pos < 180; ++pos)
+                output[track][freq][pos] *= timeDecayConstant;
+
+    
+    // add current loudness values into output matrix
+    for (int track = 0; track < numTracks; ++track)
     {
-        std::cout << "Instantaneous Loudness\n";
-        for (int chn = 0; chn < partialLoudnessOutput->getNChannels(); chn++)
+        for (int freq = 0; freq < numFreqBins; ++freq)
         {
-            lo += partialLoudnessOutput->getSample(0,chn,0);
-            pl += partialLoudnessOutput->getSample(0,chn,1);
+            const float intensity = (float) roexBankOutput->getSample(track, freq, 0);
+            if (intensity > intensityCutoffConstant)
+            {
+                const int spatialBin = (int) powerSpectrumOutput->getSpatialPosition(track, freq);
+
+                // detect masking
+                // loudness - partial loudness
+                if (log(integratedLoudnessOutput->getSample(track, freq, 1)) - log(integratedLoudnessOutput->getSample(track, freq, 4)) > maskingThreshold)
+                {
+                    output[track+numTracks][freq][spatialBin] += intensity;
+                }
+                else
+                {
+                    output[track][freq][spatialBin] += intensity;
+                }
+            }
         }
-        cout << "lo: " << lo << " pl: " << pl << endl;
-    }
-    else
-    {
-        shouldPrint = (shouldPrint + 1) % 20000;
     }
 
     // We need to clear the output buffers before returning, in case they're full of junk..
@@ -156,62 +177,73 @@ void Visualizer::paint (Graphics& g)
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
 
-    // apply time decay to current output
-    for (int track = 0; track < numTracks+1; ++track)
-        for (int freq = 0; freq < numFreqBins; ++freq)
-            for (int pos = 0; pos < 180; ++pos)
-                output[track][freq][pos] *= timeDecayConstant;
-
-    
-    // add current loudness values into output matrix
-    for (int track = 0; track < numTracks; ++track)
+    if (detectionMode)
     {
-        for (int freq = 0; freq < numFreqBins; ++freq)
+        // only draw maskers
+        for (int track = 0; track < numTracks; ++track)
         {
-            const float intensity = (float) roexBankOutput->getSample(track, freq, 0);
-            if (intensity > intensityCutoffConstant)
+            const int idx = track + numTracks;
+            for (int freq = 0; freq < numFreqBins; ++freq)
             {
-                const int spatialBin = (int) powerSpectrumOutput->getSpatialPosition(track, freq);
-
-                // if there is masking, colour is black
-                if (log(partialLoudnessOutput->getSample(track, freq, 0)) - log(partialLoudnessOutput->getSample(track, freq, 1)) > maskingThreshold)
+                for (int pos = 0; pos < 180; ++pos)
                 {
-                    output[numTracks][freq][spatialBin] += intensity;
+                    const float intensity = output[idx][freq][pos];
+                    if (intensity > intensityCutoffConstant)
+                    {
+                        const float xf = (float) pos; // add 90 so all values are positive
+                        const float yf = (float) freq;
+                        g.setColour(trackIntensityToColour(intensity,track));
+                        g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                                                ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
+                                                binWidth,
+                                                binHeight));
+                    }
                 }
-                else
-                {
-                    output[track][freq][spatialBin] += intensity;
-                }
-                
             }
         }
     }
-
-    // draw the current output matrix
-    for (int track = 0; track < numTracks+1; ++track)
+    else
     {
-        for (int freq = 0; freq < numFreqBins; ++freq)
+        // draw the current output matrix
+        for (int track = 0; track < numTracks; ++track)
         {
-            for (int pos = 0; pos < 180; ++pos)
+            for (int freq = 0; freq < numFreqBins; ++freq)
             {
-                const float intensity = output[track][freq][pos];
-                if (intensity > intensityCutoffConstant)
+                for (int pos = 0; pos < 180; ++pos)
                 {
-                    const float xf = (float) pos; // add 90 so all values are positive
-                    const float yf = (float) freq;
-                    if (track == numTracks)
+                    const float intensity = output[track][freq][pos];
+                    if (intensity > intensityCutoffConstant)
                     {
-                        g.setColour(Colours::black);
+                        const float xf = (float) pos; // add 90 so all values are positive
+                        const float yf = (float) freq;
+                        g.setColour(trackIntensityToColour(intensity,track));
+                        g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                                                ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
+                                                binWidth,
+                                                binHeight));
                     }
-                    else
+                }
+            }
+        }
+        // draw maskers
+        for (int track = 0; track < numTracks; ++track)
+        {
+            const int idx = track + numTracks;
+            for (int freq = 0; freq < numFreqBins; ++freq)
+            {
+                for (int pos = 0; pos < 180; ++pos)
+                {
+                    const float intensity = output[idx][freq][pos];
+                    if (intensity > intensityCutoffConstant)
                     {
-                        g.setColour(intensityToColour(intensity,track));
+                        const float xf = (float) pos; // add 90 so all values are positive
+                        const float yf = (float) freq;
+                        g.setColour(maskerIntensityToColour(intensity,track));
+                        g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                                                ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
+                                                binWidth,
+                                                binHeight));
                     }
-
-                    g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
-                                            ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
-                                            binWidth,
-                                            binHeight));
                 }
             }
         }
@@ -307,7 +339,12 @@ void Visualizer::timerCallback()
     repaint();
 }
 
-Colour Visualizer::intensityToColour(const float intensity, const int track)
+Colour Visualizer::trackIntensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, intensity / intensityScalingConstant, 1.0f, 1.0f);
+    return Colour((float)track / (float)numTracks, intensity / intensityScalingConstant, 1.0f, 0.8f);
+}
+
+Colour Visualizer::maskerIntensityToColour(const float intensity, const int track)
+{
+    return Colour((float)track / (float)numTracks, 1.0f, 0.33f, 1.0f);
 }

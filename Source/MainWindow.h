@@ -68,6 +68,7 @@ private:
     Value intensityCutoffConstantValue;
     Value timeDecayConstantValue;
     Value maskingThresholdValue;
+    Value detectionModeValue;
     //[/UserVariables]
 
     //==============================================================================
