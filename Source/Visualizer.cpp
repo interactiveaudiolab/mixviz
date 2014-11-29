@@ -86,9 +86,9 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
 {
     // get info about the audio device we are connected to
     activeInputChannels = device->getActiveInputChannels();
-    bufferSize = 1024; //device->getCurrentBufferSizeSamples();
+    bufferSize = device->getCurrentBufferSizeSamples();
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
-    cout << "active channels: " << numActiveChannels << endl;
+    std::cout << bufferSize << std::endl;
     fs = device->getCurrentSampleRate();
 
     for (int row = 0; row < numFreqBins; ++row)
@@ -110,6 +110,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
     for (int target = 0; target < numTracks; ++target)
     {
         // copy input L and R channel data into our input sample buffer
+        //std::cout << "track: ", << track << std::endl;
         for (int i = 0; i < numSamples; ++i)
         {
             audioInputBank->setSample(2*target, 0, i, (double) inputChannelData[target*2][i]); // right
@@ -119,6 +120,13 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     // run the model
     model->process(*audioInputBank);
+
+    // print to cout
+    double il = 0;
+    for (int freq = 0; freq < numFreqBins; ++freq)
+        il += partialLoudnessOutput->getSample(1, freq, 1);
+
+    //std::cout << il << std::endl;
 
     // apply time decay to current output
     for (int track = 0; track < numTracks * 2; ++track)
