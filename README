@@ -16,6 +16,7 @@ PREREQUISITES
 - Linux OS
 - JACK Audio Connection Kit (http://jackaudio.org/)
 - FFTW3 fft libraries (http://www.fftw.org/)
+- loudness modeling library (https://github.com/jondavidford/loudness)
 - Some third party DAW that is compatible with JACK (Ardour works)
 
 
