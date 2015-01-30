@@ -41,9 +41,9 @@ Visualizer::Visualizer()
     shouldPrint = 0;
 
     audioInputBank = new loudness::TrackBank();
-    audioInputBank->initialize(numTracks * 2, 1, 1024, 48000);
+    audioInputBank->initialize(numTracks * 2, 1, 1024, 44100);
 
-    model = new loudness::DynamicPartialLoudnessGM("48000_IIR_23_freemid.npy");
+    model = new loudness::DynamicPartialLoudnessGM("44100_IIR_23_freemid.npy");
     model->initialize(*audioInputBank);
 
     powerSpectrumOutput = model->getModuleOutput(2);

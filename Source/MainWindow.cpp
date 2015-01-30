@@ -105,7 +105,7 @@ MainWindow::MainWindow ()
 
     // makes a new visualizer with default settings
 	addAndMakeVisible (visualizer = new Visualizer());
-    audioIODevice->open(BigInteger(255),BigInteger(255),48000,1024);
+    audioIODevice->open(BigInteger(255),BigInteger(255),44100,1024);
     if (audioIODevice->isOpen())
     {
         textEditor->insertTextAtCaret("Audio device is open\n");
