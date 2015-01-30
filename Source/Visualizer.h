@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <fftw3.h>
+#include <loudness/Models/DynamicPartialLoudnessGM.h>
 
 //==============================================================================
 /*
@@ -27,7 +28,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int tracks, const int spatialBins, const int freqBins, const float intensityScaling, const float intensityCutoff, const double timeDecay, const int freqFlag, const int spatialFlag);
+    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_, const bool detectionMode_);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
@@ -36,57 +37,36 @@ public:
                                 int numSamples) override;
 
 private:
-    // fft input arrays: real arrays containing audio samples
-    double fftInputL[1024];
-    double fftInputR[1024];
-
-    // fft output arrays containing complex numbers
-    fftw_complex fftOutputL[513];
-    fftw_complex fftOutputR[513];
-
-    // fft output with phase info removed
-    double fftMagnitudesL[513];
-    double fftMagnitudesR[513];
+    // data structures for masking model
+    // turn these into arbitrary sized vectors
+    loudness::TrackBank *audioInputBank;
+    const loudness::TrackBank *powerSpectrumOutput;
+    const loudness::TrackBank *roexBankOutput;
+    const loudness::TrackBank *partialLoudnessOutput;
+    const loudness::TrackBank *integratedLoudnessOutput;
+    loudness::DynamicPartialLoudnessGM *model;
+    std::vector <std::vector <std::vector<double>> > output; // [track][freq][pos]
+    int shouldPrint;
 
     // "settings" constants
-    int numSpatialBins;
     int numFreqBins;
+    int numSpatialBins;
     int numTracks;
     float intensityScalingConstant;
     float intensityCutoffConstant;
     double timeDecayConstant;
-    int freqMaskingFlag;
-    int spatialMaskingFlag;
-
-    // fft plans
-    fftw_plan fftL;
-    fftw_plan fftR;
-    fftw_plan fftStereo;
-    
-    // masking model input and output buffers
-    double maskingInput[4][128][40];
-    double prevMaskingInput[4][128][40];
-    double maskingOutput[4][128][40];
+    double maskingThreshold;
+    bool detectionMode;
 
     // dummy convolution model
     double freqGaussian[5];
     double spatialGaussian[11];
-
-    // functions to clear masking model input and output buffers
-    void clearMaskingInput();
-    void clearMaskingOutput();
 
     // other buffers used in masking models
     double colBuffer[40];
     double rowBuffer[128];
     double freqConvBuffer[523]; // 523 + 11 - 1
     double spatialConvBuffer[138]; // 128 + 11 - 1
-
-    // gammatone filter bank and outputs
-    double gammatoneFilter[40][513];
-    double cutoffFreqs[40];
-    double filterOutputL[40];
-    double filterOutputR[40];
     
     // info about the audio device this component is recieving input from
     double fs;
@@ -97,12 +77,8 @@ private:
     void timerCallback() override;
 
     // useful helper functions
-    int calculateSpatialBin(const float magnitudeL, const float magnitudeR);
-    Colour intensityToColour(const float intensity, const int track);
-    void runMaskingModel();
-    void calculateFreqMasking(const int track);
-    void calculateSpatialMasking(const int track);
-    void makeGammatoneFilters();
+    Colour trackIntensityToColour(const float intensity, const int track);
+    Colour maskerIntensityToColour(const float intensity, const int track);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

@@ -34,25 +34,23 @@ Array<PropertyComponent*> MainWindow::createSettings(bool first)
     // initialize constants to default values
     if (first)
     {
-        numSpatialBinsValue.setValue("128");
-        numFreqBinsValue.setValue("40");
         numTracksValue.setValue("4");
-        intensityScalingConstantValue.setValue("150");
+        intensityScalingConstantValue.setValue("5000");
         intensityCutoffConstantValue.setValue("10");
-        timeDecayConstantValue.setValue("0.94");
-        freqMaskingFlagValue.setValue("0");
-        spatialMaskingFlagValue.setValue("0");
+        timeDecayConstantValue.setValue("0.70");
+        maskingThresholdValue.setValue("6");
+        detectionModeValue.setValue("0");
     }
 
     // add text fields to main window
     //comps.add (new TextPropertyComponent (numSpatialBinsValue, "Number of Spatial Bins (Fixed)", 20, false));
     //comps.add (new TextPropertyComponent (numFreqBinsValue, "Number of Frequency Bins (Fixed)", 20, false));
     comps.add (new TextPropertyComponent (numTracksValue, "Number of Stereo Tracks (4)", 20, false));
-    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (150)", 20, false));
+    comps.add (new TextPropertyComponent (intensityScalingConstantValue, "Intensity Constant (5000)", 20, false));
     comps.add (new TextPropertyComponent (intensityCutoffConstantValue, "Intensity Cutoff (10)", 20, false));
-    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.95)", 20, false));
-    comps.add (new TextPropertyComponent (freqMaskingFlagValue, "Frequency Masking (1 -> on, 0 -> off)", 20, false));
-    comps.add (new TextPropertyComponent (spatialMaskingFlagValue, "Spatial Masking (1 -> on, 0 -> off)", 20, false));
+    comps.add (new TextPropertyComponent (timeDecayConstantValue, "Time Decay Constant (0.70)", 20, false));
+    comps.add (new TextPropertyComponent (maskingThresholdValue, "Masking Threshold (6)", 20, false));
+    comps.add (new TextPropertyComponent (detectionModeValue, "Detection Mode (0)", 20, false));
     return comps;
 }
 
@@ -107,7 +105,7 @@ MainWindow::MainWindow ()
 
     // makes a new visualizer with default settings
 	addAndMakeVisible (visualizer = new Visualizer());
-    audioIODevice->open(BigInteger(255),BigInteger(255),48000,1024);
+    audioIODevice->open(BigInteger(255),BigInteger(255),44100,1024);
     if (audioIODevice->isOpen())
     {
         textEditor->insertTextAtCaret("Audio device is open\n");
@@ -171,13 +169,12 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
         // update visualizer settings
         const int numTracks = (int) numTracksValue.getValue();
         const int numSpatialBins = (int) numSpatialBinsValue.getValue();
-        const int numFreqBins = (int) numFreqBinsValue.getValue();
         const float intensityScalingConstant = (float) intensityScalingConstantValue.getValue();
         const float intensityCutoffConstant = (float) intensityCutoffConstantValue.getValue();
         const double timeDecayConstant = (double) timeDecayConstantValue.getValue();
-        const int freqMaskingFlag = (int) freqMaskingFlagValue.getValue();
-        const int spatialMaskingFlag = (int) spatialMaskingFlagValue.getValue();
-        visualizer->changeSettings(numTracks, numSpatialBins, numFreqBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, freqMaskingFlag, spatialMaskingFlag);
+        const double maskingThreshold = (double) maskingThresholdValue.getValue();
+        const bool detectionMode = (bool) detectionModeValue.getValue();
+        visualizer->changeSettings(numTracks, numSpatialBins, intensityScalingConstant, intensityCutoffConstant, timeDecayConstant, maskingThreshold, detectionMode);
 
         // build the panel with the tracks and their colors
         settings->clear();

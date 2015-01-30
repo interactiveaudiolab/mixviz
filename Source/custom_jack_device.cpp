@@ -162,7 +162,7 @@ public:
 
         // activate client !        
         jack_set_process_callback (client, JackAudioIODevice::processCallback, this);
-	jack_set_freewheel_callback (client, JackAudioIODevice::freewheelCallback, this);
+        jack_set_freewheel_callback (client, JackAudioIODevice::freewheelCallback, this);
         jack_on_shutdown (client, JackAudioIODevice::shutdownCallback, this);
 
         jack_activate (client); client_activated = true;
@@ -190,7 +190,7 @@ public:
             jack_set_process_callback (client, JackAudioIODevice::processCallback, 0);
             jack_on_shutdown (client, JackAudioIODevice::shutdownCallback, 0);
         }
-        if (config.freewheel_flag) *config.freewheel_flag = -1;
+        //if (config.freewheel_flag) *config.freewheel_flag = -1;
         isOpen_ = false;
     }
 

@@ -58,18 +58,17 @@ public:
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     ScopedPointer<AudioIODevice> audioIODevice;
-	ScopedPointer<AudioIODeviceType> audioIODeviceType;
+    ScopedPointer<AudioIODeviceType> audioIODeviceType;
     ScopedPointer<Visualizer> visualizer;
     ScopedPointer<PropertyPanel> settings;
     ScopedPointer<PropertyPanel> tracks;
     Value numTracksValue;
     Value numSpatialBinsValue;
-    Value numFreqBinsValue;
     Value intensityScalingConstantValue;
     Value intensityCutoffConstantValue;
     Value timeDecayConstantValue;
-    Value freqMaskingFlagValue;
-    Value spatialMaskingFlagValue;
+    Value maskingThresholdValue;
+    Value detectionModeValue;
     //[/UserVariables]
 
     //==============================================================================
