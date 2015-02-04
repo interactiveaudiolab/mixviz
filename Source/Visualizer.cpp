@@ -32,14 +32,6 @@ Visualizer::Visualizer()
     numTracks = 4;
     changeSettings(numTracks, 128, 5000.0f, 10.0f, 0.70, 6, 0);
 
-    //initialize gaussians
-    for (int i = -5; i < 6; ++i)
-        spatialGaussian[i+5] = exp(pow((float)i,2.0f)/-8.0f);
-    for (int i = -2; i < 3; ++i)
-        freqGaussian[i+2] = exp(pow((float)i,2.0f)/-8.0f);
-
-    shouldPrint = 0;
-
     audioInputBank = new loudness::TrackBank();
     audioInputBank->initialize(numTracks * 2, 1, 1024, 44100);
 
@@ -52,6 +44,7 @@ Visualizer::Visualizer()
     integratedLoudnessOutput = model->getModuleOutput(6);
 
     numFreqBins = roexBankOutput->getNChannels();
+    cutoffFreqs = roexBankOutput->getCentreFreqs();
     output.resize(numTracks * 2);
     for (int track = 0; track < numTracks * 2; track++)
     {
@@ -310,15 +303,15 @@ void Visualizer::paint (Graphics& g)
                 Justification(4),
                 true);
 
-    /*
+    
     // draw cutoff frequency lines
-    // first draw the 0
+    // first draw the 0 
     g.drawFittedText ("Frequency (Hz)", Rectangle<int>(0,(int)(winHeight / 2.0f + topBorder), (int)(leftBorder/2.0f), (int)(winHeight/3.0f)), Justification(1), 10);
     const float tickX = leftBorder - tickHeight;
     const float txtX = tickX - textWidth;
     g.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
     g.drawText ("0", Rectangle<float>(txtX, winHeight + topBorder, tickHeight, 10.0f), Justification(4), true);
-    for (int i = 0; i < numFreqBins; ++i)
+    for (int i = 0; i < numFreqBins; i += 10)
     {
         const float yf = (float) i;
         g.fillRect (Rectangle<float>(   tickX, 
@@ -333,7 +326,7 @@ void Visualizer::paint (Graphics& g)
                     Justification(12),
                     true);
     }
-    */
+    
 }
 
 void Visualizer::resized()

@@ -46,7 +46,7 @@ private:
     const loudness::TrackBank *integratedLoudnessOutput;
     loudness::DynamicPartialLoudnessGM *model;
     std::vector <std::vector <std::vector<double>> > output; // [track][freq][pos]
-    int shouldPrint;
+    std::vector<double> cutoffFreqs;
 
     // "settings" constants
     int numFreqBins;
@@ -57,10 +57,6 @@ private:
     double timeDecayConstant;
     double maskingThreshold;
     bool detectionMode;
-
-    // dummy convolution model
-    double freqGaussian[5];
-    double spatialGaussian[11];
 
     // other buffers used in masking models
     double colBuffer[40];
