@@ -30,7 +30,7 @@ Visualizer::Visualizer()
 
     // give settings default values
     numTracks = 4;
-    changeSettings(numTracks, 128, 5000.0f, 10.0f, 0.70, 6, 0);
+    changeSettings(5000.0f, 10.0f, 0.70, 2, 0);
 
     audioInputBank = new loudness::TrackBank();
     audioInputBank->initialize(numTracks * 2, 1, 1024, 44100);
@@ -58,16 +58,14 @@ Visualizer::~Visualizer()
 {
 }
 
-void Visualizer::changeSettings(const int numTracks_,
-                                const int numSpatialBins_,
-                                const float intensityScalingConstant_,
+void Visualizer::changeSettings(const float intensityScalingConstant_,
                                 const float intensityCutoffConstant_,
                                 const double timeDecayConstant_,
                                 const double maskingThreshold_,
                                 const bool detectionMode_)
 {
-    numTracks = numTracks_;
-    numSpatialBins = numSpatialBins_;
+    numTracks = 4;
+    numSpatialBins = 128;
     intensityScalingConstant = intensityScalingConstant_;
     intensityCutoffConstant = intensityCutoffConstant_;
     timeDecayConstant = timeDecayConstant_;
@@ -161,7 +159,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    g.fillAll (Colours::white);   // clear the background
+    g.fillAll (Colours::grey);   // clear the background
     const float leftBorder = 100.0f;
     const float rightBorder = 30.0f;
     const float bottomBorder = 40.0f;
@@ -178,6 +176,8 @@ void Visualizer::paint (Graphics& g)
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
 
+    g.setColour(Colours::black);
+    g.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, winHeight));
     if (detectionMode)
     {
         // only draw maskers
@@ -252,13 +252,14 @@ void Visualizer::paint (Graphics& g)
 
 
     // draw a line down the middle and around this box
-    g.setColour(Colours::black);
+    g.setColour(Colours::white);
     g.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, 1.0f)); // top line
     g.fillRect(Rectangle<float>(leftBorder, winHeight + topBorder, winWidth, 1.0f)); // bottom line
     g.fillRect(Rectangle<float>(leftBorder, topBorder, 1.0f, winHeight)); // left line
     g.fillRect(Rectangle<float>(width - rightBorder, topBorder, 1.0f, winHeight)); // right line
     g.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, topBorder, 1.0f, winHeight)); // middle line
 
+    g.setColour(Colours::black);
     // draw text and tick marks for labeling the graph
     g.drawText ("Spatial Position", 
                 Rectangle<float>(winWidth / 2.0f + leftBorder - 40.0f,
@@ -342,10 +343,10 @@ void Visualizer::timerCallback()
 
 Colour Visualizer::trackIntensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, intensity / intensityScalingConstant, 1.0f, 0.8f);
+    return Colour((float)track / (float)numTracks, 0.8f, intensity / intensityScalingConstant, 1.0f);
 }
 
 Colour Visualizer::maskerIntensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, 1.0f, 0.33f, 1.0f);
+    return Colour((float)track / (float)numTracks, 0.2f, 1.0f, 1.0f);
 }

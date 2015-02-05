@@ -36,6 +36,7 @@
                                                                     //[/Comments]
 */
 class MainWindow  : public Component,
+                    public SliderListener,
                     public ButtonListener
 {
 public:
@@ -45,35 +46,40 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    Array<PropertyComponent*> createSettings(bool first);
     Array<PropertyComponent*> createTracks(int numTracks);
     //[/UserMethods]
 
     void paint (Graphics& g);
     void resized();
     void buttonClicked (Button* buttonThatWasClicked);
-
+    void sliderValueChanged (Slider*) override;
 
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     ScopedPointer<AudioIODevice> audioIODevice;
     ScopedPointer<AudioIODeviceType> audioIODeviceType;
+    ScopedPointer<Slider> intensityCutoffConstantSlider;
+    ScopedPointer<Label> intensityCutoffConstantLabel;
+
+    ScopedPointer<Slider> intensityScalingConstantSlider;
+    ScopedPointer<Label> intensityScalingConstantLabel;
+
+    ScopedPointer<Slider> timeDecayConstantSlider;
+    ScopedPointer<Label> timeDecayConstantLabel;
+
+    ScopedPointer<Slider> maskingThresholdSlider;
+    ScopedPointer<Label> maskingThresholdLabel;
+
+    ScopedPointer<Slider> detectionModeSlider;
     ScopedPointer<Visualizer> visualizer;
-    ScopedPointer<PropertyPanel> settings;
+    ScopedPointer<PropertyPanel> tracksPanel;
     ScopedPointer<PropertyPanel> tracks;
     Value numTracksValue;
-    Value numSpatialBinsValue;
-    Value intensityScalingConstantValue;
-    Value intensityCutoffConstantValue;
-    Value timeDecayConstantValue;
-    Value maskingThresholdValue;
-    Value detectionModeValue;
+    //Slider numSpatialBinsSlider;-
     //[/UserVariables]
 
-    //==============================================================================
-    ScopedPointer<TextButton> startButton;
-    ScopedPointer<TextEditor> textEditor;
+    //==============================================================================\
 
 
     //==============================================================================

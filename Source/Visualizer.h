@@ -28,7 +28,7 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const int numTracks_, const int numSpatialBins_, const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_, const bool detectionMode_);
+    void changeSettings(const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_, const bool detectionMode_);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
