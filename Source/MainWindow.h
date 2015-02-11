@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Introjucer version: 3.1.0
+  Created with Introjucer version: 3.1.1
 
   ------------------------------------------------------------------------------
 
@@ -24,7 +24,6 @@
 #include "JuceHeader.h"
 #include "Visualizer.h"
 #include "TrackComponents/TrackSelector.h"
-#include "TrackComponents/TrackBox.h"
 //[/Headers]
 
 
@@ -49,12 +48,13 @@ public:
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
     Array<PropertyComponent*> createTracks(StringArray trackNames);
+    void sliderValueChanged (Slider*) override;
     //[/UserMethods]
 
     void paint (Graphics& g);
     void resized();
     void buttonClicked (Button* buttonThatWasClicked);
-    void sliderValueChanged (Slider*) override;
+
 
 
 private:
@@ -82,13 +82,14 @@ private:
 
     // tracks
     ScopedPointer<TextButton> loadTracksButton;
-    ScopedPointer<PropertyPanel> tracksPanel;
-    ScopedPointer<PropertyPanel> tracks;
+    ScopedPointer<TrackSelector> trackSelector;
+
     Value numTracksValue;
     //Slider numSpatialBinsSlider;
     //[/UserVariables]
 
-    //==============================================================================\
+    //==============================================================================
+    ScopedPointer<TextButton> startButton;
 
 
     //==============================================================================

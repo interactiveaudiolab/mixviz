@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Introjucer version: 3.1.0
+  Created with Introjucer version: 3.1.1
 
   ------------------------------------------------------------------------------
 
@@ -289,6 +289,11 @@ struct CustomLookAndFeel    : public LookAndFeel_V3
 //==============================================================================
 MainWindow::MainWindow ()
 {
+    addAndMakeVisible (startButton = new TextButton ("Start"));
+    startButton->setButtonText (TRANS("Apply Settings"));
+    startButton->addListener (this);
+
+
     //[UserPreSize]
 	audioIODeviceType = createAudioIODeviceType_JACK_Custom();
 	if (audioIODeviceType != nullptr)
@@ -310,7 +315,8 @@ MainWindow::MainWindow ()
     loadTracksButton->setButtonText (TRANS("Load track names"));
     loadTracksButton->addListener (this);
 
-    addAndMakeVisible (tracksPanel = new PropertyPanel());
+    addAndMakeVisible (trackSelector = new TrackSelector());
+    trackSelector->setTopLeftPosition(0,710);
 
     // makes a new visualizer with default settings
 	addAndMakeVisible (visualizer = new Visualizer());
@@ -364,22 +370,11 @@ MainWindow::~MainWindow()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
+    startButton = nullptr;
+
 
     //[Destructor]. You can add your own custom destruction code here..
     //[/Destructor]
-}
-
-void MainWindow::sliderValueChanged (Slider*)
-{
-    float intensityScalingConstant = (float) intensityScalingConstantSlider->getValue();
-    float intensityCutoffConstant = (float) intensityCutoffConstantSlider->getValue();
-    double timeDecayConstant = (double) timeDecayConstantSlider->getValue();
-    double maskingThreshold = (double) maskingThresholdSlider->getValue();
-    visualizer->changeSettings(intensityScalingConstant,
-                               intensityCutoffConstant,
-                               timeDecayConstant,
-                               maskingThreshold,
-                               0);
 }
 
 //==============================================================================
@@ -396,10 +391,14 @@ void MainWindow::paint (Graphics& g)
 
 void MainWindow::resized()
 {
+    //[UserPreResize] Add your own custom resize code here..
+    //[/UserPreResize]
+
+    startButton->setBounds (408, 0, 150, 24);
     //[UserResized] Add your own custom resize handling here..
     visualizer->setBounds(0,0,700,600);
     loadTracksButton->setBounds(0, 690, 100, 20);
-    tracksPanel->setBounds(0,710,700,200);
+
     intensityScalingConstantSlider->setBounds(100,600,100,65);
     intensityScalingConstantLabel->setBounds(100,670,100,65);
 
@@ -429,7 +428,7 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
             File jackFile (myChooser.getResult());
             String text = jackFile.loadFileAsString();
             String textWithNames = text.fromFirstOccurrenceOf("<output-sockets>", 0, 1).upToFirstOccurrenceOf("</output-sockets>", 0, 1);
-            
+
             // initialize empty string array
             StringArray trackNames;
 
@@ -443,12 +442,16 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
             }
 
             // display the tracks with these new names
-            tracksPanel->clear();
-            tracksPanel->addSection("Tracks", createTracks(trackNames));
+            trackSelector->makeTrackBoxes(trackNames);
         }
     }
     //[/UserbuttonClicked_Pre]
 
+    if (buttonThatWasClicked == startButton)
+    {
+        //[UserButtonCode_startButton] -- add your button handler code here..
+        //[/UserButtonCode_startButton]
+    }
 
     //[UserbuttonClicked_Post]
     //[/UserbuttonClicked_Post]
@@ -457,7 +460,18 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-// custom look and feel from JuceDemo
+void MainWindow::sliderValueChanged (Slider*)
+{
+    float intensityScalingConstant = (float) intensityScalingConstantSlider->getValue();
+    float intensityCutoffConstant = (float) intensityCutoffConstantSlider->getValue();
+    double timeDecayConstant = (double) timeDecayConstantSlider->getValue();
+    double maskingThreshold = (double) maskingThresholdSlider->getValue();
+    visualizer->changeSettings(intensityScalingConstant,
+                                intensityCutoffConstant,
+                                timeDecayConstant,
+                                maskingThreshold,
+                                0);
+}
 //[/MiscUserCode]
 
 
@@ -471,17 +485,13 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="MainWindow" componentName=""
-                 parentClasses="public Component" constructorParams="" variableInitialisers=""
-                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="700" initialHeight="1000">
-  <BACKGROUND backgroundColour="ffffffff"/>
+                 parentClasses="public Component, public SliderListener" constructorParams=""
+                 variableInitialisers="" snapPixels="8" snapActive="1" snapShown="1"
+                 overlayOpacity="0.330" fixedSize="0" initialWidth="700" initialHeight="1000">
+  <BACKGROUND backgroundColour="ff808080"/>
   <TEXTBUTTON name="Start" id="db72bd0eaa128ea6" memberName="startButton" virtualName=""
               explicitFocusOrder="0" pos="408 0 150 24" buttonText="Apply Settings"
               connectedEdges="0" needsCallback="1" radioGroupId="0"/>
-  <TEXTEDITOR name="new text editor" id="6c76fb12e38dd58f" memberName="textEditor"
-              virtualName="" explicitFocusOrder="0" pos="0 0 400 24" initialText=""
-              multiline="0" retKeyStartsLine="0" readonly="0" scrollbars="1"
-              caret="1" popupmenu="1"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
