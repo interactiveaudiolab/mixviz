@@ -46,7 +46,7 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    Array<PropertyComponent*> createTracks(int numTracks);
+    Array<PropertyComponent*> createTracks(StringArray trackNames);
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -59,6 +59,8 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     ScopedPointer<AudioIODevice> audioIODevice;
     ScopedPointer<AudioIODeviceType> audioIODeviceType;
+
+    // settings sliders and buttons
     ScopedPointer<Slider> intensityCutoffConstantSlider;
     ScopedPointer<Label> intensityCutoffConstantLabel;
 
@@ -72,11 +74,16 @@ private:
     ScopedPointer<Label> maskingThresholdLabel;
 
     ScopedPointer<Slider> detectionModeSlider;
+
+    // visualizer component
     ScopedPointer<Visualizer> visualizer;
+
+    // tracks
+    ScopedPointer<TextButton> loadTracksButton;
     ScopedPointer<PropertyPanel> tracksPanel;
     ScopedPointer<PropertyPanel> tracks;
     Value numTracksValue;
-    //Slider numSpatialBinsSlider;-
+    //Slider numSpatialBinsSlider;
     //[/UserVariables]
 
     //==============================================================================\
