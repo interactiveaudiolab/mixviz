@@ -89,7 +89,7 @@ ModalComponentManager::~ModalComponentManager()
     clearSingletonInstance();
 }
 
-juce_ImplementSingleton_SingleThreaded (ModalComponentManager);
+juce_ImplementSingleton_SingleThreaded (ModalComponentManager)
 
 
 //==============================================================================
@@ -232,6 +232,17 @@ void ModalComponentManager::bringModalComponentsToFront (bool topOneShouldGrabFo
             lastOne = peer;
         }
     }
+}
+
+bool ModalComponentManager::cancelAllModalComponents()
+{
+    const int numModal = getNumModalComponents();
+
+    for (int i = numModal; --i >= 0;)
+        if (Component* const c = getModalComponent(i))
+            c->exitModalState (0);
+
+    return numModal > 0;
 }
 
 #if JUCE_MODAL_LOOPS_PERMITTED

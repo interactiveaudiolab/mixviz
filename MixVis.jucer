@@ -2,15 +2,24 @@
 
 <JUCERPROJECT id="lfaMgN" name="MixVis" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.MixVis" includeBinaryInAppConfig="1"
-              jucerVersion="3.1.0">
+              jucerVersion="3.1.1">
   <MAINGROUP id="yF4o1v" name="MixVis">
     <GROUP id="{0C3447DD-BEBB-1D8A-F494-31F68CB7DC4C}" name="Source">
-      <FILE id="tCDoUp" name="relay_libjack.cpp" compile="1" resource="0"
-            file="Source/relay_libjack.cpp"/>
-      <FILE id="nnSnOu" name="custom_jack_device.cpp" compile="1" resource="0"
-            file="Source/custom_jack_device.cpp"/>
-      <FILE id="El39Zz" name="custom_jack_device.h" compile="0" resource="0"
-            file="Source/custom_jack_device.h"/>
+      <GROUP id="{847C3EC3-33C6-CA35-FC07-294B116E00A1}" name="CustomJackDevice">
+        <FILE id="tCDoUp" name="relay_libjack.cpp" compile="1" resource="0"
+              file="Source/relay_libjack.cpp"/>
+        <FILE id="nnSnOu" name="custom_jack_device.cpp" compile="1" resource="0"
+              file="Source/custom_jack_device.cpp"/>
+        <FILE id="El39Zz" name="custom_jack_device.h" compile="0" resource="0"
+              file="Source/custom_jack_device.h"/>
+      </GROUP>
+      <GROUP id="{782AAB4C-19DA-495E-AA4A-D65FDEFC7EC6}" name="TrackComponents">
+        <FILE id="zfbfHQ" name="TrackBox.cpp" compile="1" resource="0" file="Source/TrackComponents/TrackBox.cpp"/>
+        <FILE id="fTCG84" name="TrackBox.h" compile="0" resource="0" file="Source/TrackComponents/TrackBox.h"/>
+        <FILE id="MeRPbx" name="TrackSelector.cpp" compile="1" resource="0"
+              file="Source/TrackComponents/TrackSelector.cpp"/>
+        <FILE id="rocpAk" name="TrackSelector.h" compile="0" resource="0" file="Source/TrackComponents/TrackSelector.h"/>
+      </GROUP>
       <FILE id="H5mdzx" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="wCwa2y" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
       <FILE id="Ysgmr2" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>

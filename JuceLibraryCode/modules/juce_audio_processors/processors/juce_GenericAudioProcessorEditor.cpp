@@ -27,12 +27,12 @@ class ProcessorParameterPropertyComp   : public PropertyComponent,
                                          private Timer
 {
 public:
-    ProcessorParameterPropertyComp (const String& name, AudioProcessor& p, const int index_)
+    ProcessorParameterPropertyComp (const String& name, AudioProcessor& p, int paramIndex)
         : PropertyComponent (name),
           owner (p),
-          index (index_),
+          index (paramIndex),
           paramHasChanged (false),
-          slider (p, index_)
+          slider (p, paramIndex)
     {
         startTimer (100);
         addAndMakeVisible (slider);
@@ -47,7 +47,10 @@ public:
     void refresh() override
     {
         paramHasChanged = false;
-        slider.setValue (owner.getParameter (index), dontSendNotification);
+
+        if (slider.getThumbBeingDragged() < 0)
+            slider.setValue (owner.getParameter (index), dontSendNotification);
+
         slider.updateText();
     }
 
@@ -64,7 +67,7 @@ public:
         if (paramHasChanged)
         {
             refresh();
-            startTimer (1000 / 50);
+            startTimerHz (50);
         }
         else
         {
@@ -77,15 +80,14 @@ private:
     class ParamSlider  : public Slider
     {
     public:
-        ParamSlider (AudioProcessor& p, const int index_)
-            : owner (p), index (index_)
+        ParamSlider (AudioProcessor& p, int paramIndex)  : owner (p), index (paramIndex)
         {
             const int steps = owner.getParameterNumSteps (index);
 
-            if (steps <= 0 || steps == 0x7fffffff)
-                setRange (0.0, 1.0);
+            if (steps > 1 && steps < 0x7fffffff)
+                setRange (0.0, 1.0, 1.0 / (steps - 1.0));
             else
-                setRange (0.0, 1.0, 1.0 / (double) steps);
+                setRange (0.0, 1.0);
 
             setSliderStyle (Slider::LinearBar);
             setTextBoxIsEditable (false);

@@ -23,6 +23,8 @@
 //[Headers]     -- You can add your own extra header files here --
 #include "JuceHeader.h"
 #include "Visualizer.h"
+#include "TrackComponents/TrackSelector.h"
+#include "TrackComponents/TrackBox.h"
 //[/Headers]
 
 
