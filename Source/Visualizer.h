@@ -12,6 +12,7 @@
 #define VISUALIZER_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "TrackComponents/TrackSelector.h"
 #include <fftw3.h>
 #include <loudness/Models/DynamicPartialLoudnessGM.h>
 
@@ -43,8 +44,13 @@ public:
                                 float** outputChannelData, int numOutputChannels,
                                 int numSamples) override;
     void buttonClicked (Button* buttonThatWasClicked);
+    void sliderValueChanged (Slider*) override;
 
 private:
+    // child components
+    ScopedPointer<TextButton> loadTracksButton;
+    ScopedPointer<TrackSelector> trackSelector;
+
     // data structures for masking model
     // turn these into arbitrary sized vectors
     loudness::TrackBank *audioInputBank;

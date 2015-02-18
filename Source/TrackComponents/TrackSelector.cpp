@@ -18,6 +18,8 @@
 */
 
 //[Headers] You can add your own extra header files here...
+#include "TrackGroupContainer.h"
+#include "../Visualizer.h"
 //[/Headers]
 
 #include "TrackSelector.h"
@@ -27,13 +29,9 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-TrackSelector::TrackSelector (ScopedPointer<Visualizer> visualizer_)
+TrackSelector::TrackSelector (Visualizer* visualizer_)
     : visualizer(visualizer_)
 {
-    if (visualizer)
-    {
-        std::cout << "we got the visualizer";
-    }
     setName ("TrackSelector");
 
     //[UserPreSize]
@@ -54,7 +52,7 @@ TrackSelector::TrackSelector (ScopedPointer<Visualizer> visualizer_)
     {
         Colour groupColour = Colour((float) i / (float) nTrackGroups, 0.8f, 1.0f, 1.0f);
         trackGroupContainers.add(new TrackGroupContainer(visualizer, i, groupColour));
-        
+
         // make the new container visible and set position
         addAndMakeVisible(trackGroupContainers[i]);
         int row = i / trackGroupsPerRow;
@@ -159,10 +157,9 @@ BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="TrackSelector" componentName="TrackSelector"
                  parentClasses="public Component, public DragAndDropContainer"
-                 constructorParams="ScopedPointer&lt;Visualizer&gt; visualizer_"
-                 variableInitialisers="visualizer(visualizer_)" snapPixels="8"
-                 snapActive="1" snapShown="1" overlayOpacity="0.330" fixedSize="0"
-                 initialWidth="700" initialHeight="400">
+                 constructorParams="Visualizer* visualizer_" variableInitialisers="visualizer(visualizer_)"
+                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
+                 fixedSize="0" initialWidth="700" initialHeight="400">
   <BACKGROUND backgroundColour="ff808080"/>
 </JUCER_COMPONENT>
 

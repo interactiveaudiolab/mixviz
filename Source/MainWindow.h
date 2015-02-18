@@ -23,7 +23,6 @@
 //[Headers]     -- You can add your own extra header files here --
 #include "JuceHeader.h"
 #include "Visualizer.h"
-#include "TrackComponents/TrackSelector.h"
 //[/Headers]
 
 
@@ -45,8 +44,6 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    Array<PropertyComponent*> createTracks(StringArray trackNames);
-    void sliderValueChanged (Slider*) override;
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -78,10 +75,6 @@ private:
     ScopedPointer<Visualizer> visualizer;
 
     // tracks
-    ScopedPointer<TextButton> loadTracksButton;
-    ScopedPointer<TrackSelector> trackSelector;
-
-    Value numTracksValue;
     //Slider numSpatialBinsSlider;
     //[/UserVariables]
 

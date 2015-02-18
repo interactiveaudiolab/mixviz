@@ -28,20 +28,6 @@
 
 #include "custom_jack_device.h"
 
-Array<PropertyComponent*> MainWindow::createTracks(StringArray trackNames)
-{
-    Array<PropertyComponent*> comps;
-    TextPropertyComponent* comp;
-    int nTracks = trackNames.size();
-    for (int i = 0; i < nTracks; ++i)
-    {
-        comp = new TextPropertyComponent (Value (trackNames[i]), "Track "+String(i), 20, false);
-        comp->setColour(PropertyComponent::backgroundColourId, Colour((float) i / (float) nTracks, 0.8f, 1.0f, 1.0f));
-        comps.add(comp);
-    }
-    return comps;
-}
-
 // custom look and feel taken from JuceDemo
 struct CustomLookAndFeel    : public LookAndFeel_V3
 {
@@ -363,15 +349,6 @@ MainWindow::MainWindow ()
     maskingThresholdSlider->setBounds(550,600,100,65);
     maskingThresholdLabel->setBounds(550,670,100,65);
     */
-
-    // add the tracks panel
-    addAndMakeVisible (loadTracksButton = new TextButton("load"));
-    loadTracksButton->setButtonText (TRANS("Load track names"));
-    loadTracksButton->addListener (this);
-    loadTracksButton->setBounds(0, 600, 100, 20);
-
-    addAndMakeVisible (trackSelector = new TrackSelector(visualizer));
-    trackSelector->setTopLeftPosition(0,620);
     //[/Constructor]
 }
 
@@ -410,21 +387,6 @@ void MainWindow::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-void MainWindow::sliderValueChanged (Slider*)
-{
-    float intensityScalingConstant = (float) intensityScalingConstantSlider->getValue();
-    float intensityCutoffConstant = (float) intensityCutoffConstantSlider->getValue();
-    double timeDecayConstant = (double) timeDecayConstantSlider->getValue();
-    double maskingThreshold = (double) maskingThresholdSlider->getValue();
-    if (visualizer != nullptr)
-    {
-        visualizer->changeSettings(intensityScalingConstant,
-                                   intensityCutoffConstant,
-                                   timeDecayConstant,
-                                   maskingThreshold,
-                                   0);
-    }
-}
 //[/MiscUserCode]
 
 
