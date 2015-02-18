@@ -23,6 +23,7 @@
 //[Headers]     -- You can add your own extra header files here --
 #include "JuceHeader.h"
 #include "Visualizer.h"
+#include "TrackComponents/TrackSelector.h"
 //[/Headers]
 
 
@@ -35,7 +36,9 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class MainWindow  : public Component
+class MainWindow  : public Component,
+                    public ButtonListener,
+                    public SliderListener
 {
 public:
     //==============================================================================
@@ -44,6 +47,10 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+    void buttonClicked (Button* buttonThatWasClicked);
+    void sliderValueChanged (Slider*) override;
+    void updateVisualizerTracksInGroup (int groupIndex, Array<int> tracksInGroup);
+    void printMe();
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -55,6 +62,11 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     ScopedPointer<AudioIODevice> audioIODevice;
     ScopedPointer<AudioIODeviceType> audioIODeviceType;
+
+    // displayed child components
+    ScopedPointer<TextButton> loadTracksButton; // load tracks button
+    ScopedPointer<TrackSelector> trackSelector; // track selector
+    ScopedPointer<Visualizer> visualizer; // visualizer component
 
     // settings sliders and buttons
     ScopedPointer<Slider> intensityCutoffConstantSlider;
@@ -71,8 +83,7 @@ private:
 
     ScopedPointer<Slider> detectionModeSlider;
 
-    // visualizer component
-    ScopedPointer<Visualizer> visualizer;
+    
 
     // tracks
     //Slider numSpatialBinsSlider;

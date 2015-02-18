@@ -19,7 +19,7 @@
 
 //[Headers] You can add your own extra header files here...
 #include "TrackGroupContainer.h"
-#include "../Visualizer.h"
+#include "../MainWindow.h"
 //[/Headers]
 
 #include "TrackSelector.h"
@@ -29,8 +29,8 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-TrackSelector::TrackSelector (Visualizer* visualizer_)
-    : visualizer(visualizer_)
+TrackSelector::TrackSelector (MainWindow* mainWindow_)
+    : mainWindow(mainWindow_)
 {
     setName ("TrackSelector");
 
@@ -51,7 +51,7 @@ TrackSelector::TrackSelector (Visualizer* visualizer_)
     for (int i = 0; i < nTrackGroups; ++i)
     {
         Colour groupColour = Colour((float) i / (float) nTrackGroups, 0.8f, 1.0f, 1.0f);
-        trackGroupContainers.add(new TrackGroupContainer(visualizer, i, groupColour));
+        trackGroupContainers.add(new TrackGroupContainer(mainWindow, i, groupColour));
 
         // make the new container visible and set position
         addAndMakeVisible(trackGroupContainers[i]);
@@ -157,7 +157,7 @@ BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="TrackSelector" componentName="TrackSelector"
                  parentClasses="public Component, public DragAndDropContainer"
-                 constructorParams="Visualizer* visualizer_" variableInitialisers="visualizer(visualizer_)"
+                 constructorParams="MainWindow* mainWindow_" variableInitialisers="mainWindow(mainWindow_)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="700" initialHeight="400">
   <BACKGROUND backgroundColour="ff808080"/>

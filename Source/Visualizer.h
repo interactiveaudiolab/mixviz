@@ -22,8 +22,6 @@
 
 class Visualizer    : public Component,
                       public AudioIODeviceCallback,
-                      public ButtonListener,
-                      public SliderListener,
                       private Timer
 {
 public:
@@ -43,14 +41,9 @@ public:
     void audioDeviceIOCallback (const float** inputChannelData, int numInputChannels,
                                 float** outputChannelData, int numOutputChannels,
                                 int numSamples) override;
-    void buttonClicked (Button* buttonThatWasClicked);
-    void sliderValueChanged (Slider*) override;
+    void printMe();
 
 private:
-    // child components
-    ScopedPointer<TextButton> loadTracksButton;
-    ScopedPointer<TrackSelector> trackSelector;
-
     // data structures for masking model
     // turn these into arbitrary sized vectors
     loudness::TrackBank *audioInputBank;

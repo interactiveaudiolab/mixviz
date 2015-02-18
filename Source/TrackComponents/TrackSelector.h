@@ -24,7 +24,7 @@
 #include "JuceHeader.h"
 #include "TrackBox.h"
 class TrackGroupContainer;
-class Visualizer;
+class MainWindow;
 //[/Headers]
 
 
@@ -42,7 +42,7 @@ class TrackSelector  : public Component,
 {
 public:
     //==============================================================================
-    TrackSelector (Visualizer* visualizer_);
+    TrackSelector (MainWindow* mainWindow_);
     ~TrackSelector();
 
     //==============================================================================
@@ -57,9 +57,9 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    MainWindow* mainWindow;
     int nTrackGroups;
     int nTrackBoxes;
-    Visualizer* visualizer;
     OwnedArray<TrackBox> trackBoxes;
     OwnedArray<TrackGroupContainer> trackGroupContainers;
     //[/UserVariables]
