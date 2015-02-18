@@ -27,8 +27,13 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-TrackSelector::TrackSelector ()
+TrackSelector::TrackSelector (ScopedPointer<Visualizer> visualizer_)
+    : visualizer(visualizer_)
 {
+    if (visualizer)
+    {
+        std::cout << "we got the visualizer";
+    }
     setName ("TrackSelector");
 
     //[UserPreSize]
@@ -38,6 +43,27 @@ TrackSelector::TrackSelector ()
 
 
     //[Constructor] You can add your own custom stuff here..
+    // initalize track groups
+    nTrackGroups = 4;
+    const int trackGroupsPerRow = 2;
+    const int trackGroupsPerCol = 2;
+    const int trackGroupHeight = 200;
+    const int trackGroupWidth = 200;
+    const int spacing = 60;
+    for (int i = 0; i < nTrackGroups; ++i)
+    {
+        Colour groupColour = Colour((float) i / (float) nTrackGroups, 0.8f, 1.0f, 1.0f);
+        trackGroupContainers.add(new TrackGroupContainer(visualizer, i, groupColour));
+        
+        // make the new container visible and set position
+        addAndMakeVisible(trackGroupContainers[i]);
+        int row = i / trackGroupsPerRow;
+        int col = i % trackGroupsPerCol;
+        int topY = row * (trackGroupHeight + spacing);
+        int topX = col * (trackGroupWidth + spacing);
+        std::cout << "x: " << topX << " y: " << topY << std::endl;
+        trackGroupContainers[i]->setTopLeftPosition(topX, topY);
+    }
     //[/Constructor]
 }
 
@@ -78,33 +104,46 @@ void TrackSelector::resized()
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 void TrackSelector::makeTrackBoxes(StringArray trackNames)
 {
-  // remove any previous TrackBoxes
-  removeAllChildren();
+    // remove any previous TrackBoxes'
+    // NOTE: fix this to actually remove the correct children
+    // removeAllChildren();
 
-  // calculate trackbox spacing
-  const int spacing = 5;
-  const int trackBoxHeight = 20;
-  const int width = getWidth();
-  const int height = getHeight();
-  const int tracksPerRow = 2;
-  const int tracksPerCol = 2;
-  const int trackBoxWidth = (width - (tracksPerRow * spacing)) / tracksPerRow;
+    // calculate trackbox spacing
+    const int spacing = 5;
+    const int trackBoxHeight = 20;
+    const int width = getWidth();
+    const int height = getHeight();
+    const int tracksPerRow = 2;
+    const int tracksPerCol = 2;
+    const int trackBoxWidth = (width - (tracksPerRow * spacing)) / tracksPerRow;
 
-  int nTracks = trackNames.size();
-  for (int i=0; i<nTracks; ++i)
-  {
-    // calculate TrackBox colour and add it to the trackBoxes array
-    Colour boxColour = Colour((float) i / (float) nTracks, 0.8f, 1.0f, 1.0f);
-    trackBoxes.add(new TrackBox(trackNames[i], boxColour));
+    int nTracks = trackNames.size();
+    // note that the index in the array is the same as the io port for the track
+    for (int i=0; i<nTracks; ++i)
+    {
+        // calculate TrackBox colour and add it to the trackBoxes array
+        Colour boxColour = Colour((float) i / (float) nTracks, 0.8f, 1.0f, 1.0f);
+        trackBoxes.add(new TrackBox(trackNames[i], boxColour, i));
 
-    // make the new TrackBox component visible
-    addAndMakeVisible(trackBoxes[i]);
-    int row = i / tracksPerRow;
-    int col = i % tracksPerCol;
-    int topY = row * (trackBoxHeight + spacing);
-    int topX = col * (trackBoxWidth + spacing);
-    trackBoxes[i]->setTopLeftPosition(topX, topY);
-  }
+        // make the new TrackBox component visible
+        addAndMakeVisible(trackBoxes[i]);
+
+        // for the first nTrackGroups tracks added, we want to put them into a track group
+        if (i < nTrackGroups)
+        {
+            trackGroupContainers[i]->addTrackToGroup(i);
+            trackBoxes[i]->setTopLeftPosition(trackGroupContainers[i]->getPosition());
+        }
+        // for the other track boxes, put them outside of any track groups
+        else
+        {
+            int row = i / tracksPerRow;
+            int col = i % tracksPerCol;
+            int topY = row * (trackBoxHeight + spacing);
+            int topX = col * (trackBoxWidth + spacing);
+            trackBoxes[i]->setTopLeftPosition(topX, topY);
+        }
+    }
 }
 //[/MiscUserCode]
 
@@ -120,9 +159,10 @@ BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="TrackSelector" componentName="TrackSelector"
                  parentClasses="public Component, public DragAndDropContainer"
-                 constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
-                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="700"
-                 initialHeight="400">
+                 constructorParams="ScopedPointer&lt;Visualizer&gt; visualizer_"
+                 variableInitialisers="visualizer(visualizer_)" snapPixels="8"
+                 snapActive="1" snapShown="1" overlayOpacity="0.330" fixedSize="0"
+                 initialWidth="700" initialHeight="400">
   <BACKGROUND backgroundColour="ff808080"/>
 </JUCER_COMPONENT>
 

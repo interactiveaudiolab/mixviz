@@ -22,6 +22,8 @@
 
 //[Headers]     -- You can add your own extra header files here --
 #include "JuceHeader.h"
+#include "../Visualizer.h"
+#include "TrackGroupContainer.h"
 #include "TrackBox.h"
 //[/Headers]
 
@@ -40,7 +42,7 @@ class TrackSelector  : public Component,
 {
 public:
     //==============================================================================
-    TrackSelector ();
+    TrackSelector (ScopedPointer<Visualizer> visualizer_);
     ~TrackSelector();
 
     //==============================================================================
@@ -55,7 +57,11 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    int nTrackGroups;
+    int nTrackBoxes;
+    ScopedPointer<Visualizer> visualizer;
     OwnedArray<TrackBox> trackBoxes;
+    OwnedArray<TrackGroupContainer> trackGroupContainers;
     //[/UserVariables]
 
     //==============================================================================

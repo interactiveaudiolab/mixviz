@@ -14,6 +14,10 @@
               file="Source/custom_jack_device.h"/>
       </GROUP>
       <GROUP id="{782AAB4C-19DA-495E-AA4A-D65FDEFC7EC6}" name="TrackComponents">
+        <FILE id="FQljMl" name="TrackGroupContainer.cpp" compile="1" resource="0"
+              file="Source/TrackComponents/TrackGroupContainer.cpp"/>
+        <FILE id="DQdHar" name="TrackGroupContainer.h" compile="0" resource="0"
+              file="Source/TrackComponents/TrackGroupContainer.h"/>
         <FILE id="zfbfHQ" name="TrackBox.cpp" compile="1" resource="0" file="Source/TrackComponents/TrackBox.cpp"/>
         <FILE id="fTCG84" name="TrackBox.h" compile="0" resource="0" file="Source/TrackComponents/TrackBox.h"/>
         <FILE id="MeRPbx" name="TrackSelector.cpp" compile="1" resource="0"

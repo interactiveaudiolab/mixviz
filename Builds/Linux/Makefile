@@ -53,6 +53,7 @@ endif
 OBJECTS := \
   $(OBJDIR)/relay_libjack_eeea1cb7.o \
   $(OBJDIR)/custom_jack_device_e6a21451.o \
+  $(OBJDIR)/TrackGroupContainer_2e141960.o \
   $(OBJDIR)/TrackBox_2e8437b7.o \
   $(OBJDIR)/TrackSelector_482d84bd.o \
   $(OBJDIR)/Main_90ebc5c2.o \
@@ -98,6 +99,11 @@ $(OBJDIR)/relay_libjack_eeea1cb7.o: ../../Source/relay_libjack.cpp
 $(OBJDIR)/custom_jack_device_e6a21451.o: ../../Source/custom_jack_device.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling custom_jack_device.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/TrackGroupContainer_2e141960.o: ../../Source/TrackComponents/TrackGroupContainer.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling TrackGroupContainer.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/TrackBox_2e8437b7.o: ../../Source/TrackComponents/TrackBox.cpp

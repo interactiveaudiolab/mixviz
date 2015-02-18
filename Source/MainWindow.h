@@ -36,9 +36,7 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class MainWindow  : public Component,
-                    public SliderListener,
-                    public ButtonListener
+class MainWindow  : public Component
 {
 public:
     //==============================================================================
@@ -53,7 +51,6 @@ public:
 
     void paint (Graphics& g);
     void resized();
-    void buttonClicked (Button* buttonThatWasClicked);
 
 
 
@@ -89,7 +86,6 @@ private:
     //[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<TextButton> startButton;
 
 
     //==============================================================================

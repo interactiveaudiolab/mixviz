@@ -21,6 +21,8 @@
 
 class Visualizer    : public Component,
                       public AudioIODeviceCallback,
+                      public ButtonListener,
+                      public SliderListener,
                       private Timer
 {
 public:
@@ -28,13 +30,19 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const float intensityScalingConstant_, const float intensityCutoffConstant_, const double timeDecayConstant_, const double maskingThreshold_, const bool detectionMode_);
+    void changeSettings(const float intensityScalingConstant_,
+                        const float intensityCutoffConstant_,
+                        const double timeDecayConstant_,
+                        const double maskingThreshold_,
+                        const bool detectionMode_);
+    void updateTracksInGroup(int groupIndex, Array<int> tracksInGroup);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
     void audioDeviceIOCallback (const float** inputChannelData, int numInputChannels,
                                 float** outputChannelData, int numOutputChannels,
                                 int numSamples) override;
+    void buttonClicked (Button* buttonThatWasClicked);
 
 private:
     // data structures for masking model
@@ -49,20 +57,18 @@ private:
     std::vector<double> cutoffFreqs;
 
     // "settings" constants
-    int numFreqBins;
-    int numSpatialBins;
-    int numTracks;
+    int nFreqBins;
+    int nSpatialBins;
+    int nTrackGroups;
     float intensityScalingConstant;
     float intensityCutoffConstant;
     double timeDecayConstant;
     double maskingThreshold;
     bool detectionMode;
 
-    // other buffers used in masking models
-    double colBuffer[40];
-    double rowBuffer[128];
-    double freqConvBuffer[523]; // 523 + 11 - 1
-    double spatialConvBuffer[138]; // 128 + 11 - 1
+    // an array when index is the group index and 
+    // values in the array at that index represent io port numbers of tracks in the group
+    Array<Array<int>> trackGroups;
     
     // info about the audio device this component is recieving input from
     double fs;

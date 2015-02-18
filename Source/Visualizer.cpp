@@ -28,12 +28,21 @@ Visualizer::Visualizer()
     setOpaque(true);
     startTimer(1000/30);
 
+    // add the tracks panel
+    addAndMakeVisible (loadTracksButton = new TextButton("load"));
+    loadTracksButton->setButtonText (TRANS("Load track names"));
+    loadTracksButton->addListener (this);
+    loadTracksButton->setBounds(0, 600, 100, 20);
+
+    addAndMakeVisible (trackSelector = new TrackSelector(visualizer));
+    trackSelector->setTopLeftPosition(0,620);
+
     // give settings default values
-    numTracks = 4;
+    // initialize track group arrays
     changeSettings(5000.0f, 10.0f, 0.70, 2, 0);
 
     audioInputBank = new loudness::TrackBank();
-    audioInputBank->initialize(numTracks * 2, 1, 1024, 44100);
+    audioInputBank->initialize(nTrackGroups * 2, 1, 1024, 44100);
 
     model = new loudness::DynamicPartialLoudnessGM("44100_IIR_23_freemid.npy");
     model->initialize(*audioInputBank);
@@ -43,13 +52,13 @@ Visualizer::Visualizer()
     partialLoudnessOutput = model->getModuleOutput(5);
     integratedLoudnessOutput = model->getModuleOutput(6);
 
-    numFreqBins = roexBankOutput->getNChannels();
+    nFreqBins = roexBankOutput->getNChannels();
     cutoffFreqs = roexBankOutput->getCentreFreqs();
-    output.resize(numTracks * 2);
-    for (int track = 0; track < numTracks * 2; track++)
+    output.resize(nTrackGroups * 2);
+    for (int track = 0; track < nTrackGroups * 2; track++)
     {
-        output[track].resize(numFreqBins);
-        for (int freq = 0; freq < numFreqBins; freq++)
+        output[track].resize(nFreqBins);
+        for (int freq = 0; freq < nFreqBins; freq++)
             output[track][freq].assign(180, 0);
     }
 }
@@ -64,13 +73,18 @@ void Visualizer::changeSettings(const float intensityScalingConstant_,
                                 const double maskingThreshold_,
                                 const bool detectionMode_)
 {
-    numTracks = 4;
-    numSpatialBins = 128;
+    nTrackGroups = 4;
+    nSpatialBins = 128;
     intensityScalingConstant = intensityScalingConstant_;
     intensityCutoffConstant = intensityCutoffConstant_;
     timeDecayConstant = timeDecayConstant_;
     maskingThreshold = maskingThreshold_;
     detectionMode = detectionMode_;
+}
+
+void Visualizer::updateTracksInGroup(int groupIndex, Array<int> tracksInGroup)
+{
+    trackGroups.set(groupIndex, tracksInGroup);
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -81,11 +95,6 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
     std::cout << bufferSize << std::endl;
     fs = device->getCurrentSampleRate();
-
-    for (int row = 0; row < numFreqBins; ++row)
-        colBuffer[row] = 0;
-    for (int col = 0; col < numSpatialBins; ++col)
-        rowBuffer[col] = 0;
 }
 
 void Visualizer::audioDeviceStopped()
@@ -97,15 +106,28 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                                         float** outputChannelData, int numOutputChannels,
                                         int numSamples)
 {
-    // for each track
-    for (int target = 0; target < numTracks; ++target)
+    // for each track group
+    // NOTE: no gaps in the trackGroups array due to construction
+    for (int groupIndex = 0; groupIndex < nTrackGroups; ++groupIndex)
     {
-        // copy input L and R channel data into our input sample buffer
-        //std::cout << "track: ", << track << std::endl;
+        // set inputs to model to zero
         for (int i = 0; i < numSamples; ++i)
         {
-            audioInputBank->setSample(2*target, 0, i, (double) inputChannelData[target*2][i]); // right
-            audioInputBank->setSample(2*target+1, 0, i, (double) inputChannelData[target*2+1][i]); // left
+            audioInputBank->setSample(2*groupIndex, 0, i, 0); // right
+            audioInputBank->setSample(2*groupIndex+1, 0, i, 0); // left
+        }
+
+        // loop over tracks in the group and add their data to the audioInputBank
+
+        for (int targetIndex = 0; targetIndex < trackGroups[groupIndex].size(); ++targetIndex)
+        {
+            int targetIOIndex = trackGroups[groupIndex][targetIndex];
+            // copy input L and R channel data into our input sample buffer
+            for (int i = 0; i < numSamples; ++i)
+            {
+                audioInputBank->sumSample(2*groupIndex, 0, i, (double) inputChannelData[targetIOIndex*2][i]); // right
+                audioInputBank->sumSample(2*groupIndex+1, 0, i, (double) inputChannelData[targetIOIndex*2+1][i]); // left
+            }
         }
     }
 
@@ -114,22 +136,22 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     // print to cout
     double il = 0;
-    for (int freq = 0; freq < numFreqBins; ++freq)
+    for (int freq = 0; freq < nFreqBins; ++freq)
         il += partialLoudnessOutput->getSample(1, freq, 1);
 
     //std::cout << il << std::endl;
 
     // apply time decay to current output
-    for (int track = 0; track < numTracks * 2; ++track)
-        for (int freq = 0; freq < numFreqBins; ++freq)
+    for (int track = 0; track < nTrackGroups * 2; ++track)
+        for (int freq = 0; freq < nFreqBins; ++freq)
             for (int pos = 0; pos < 180; ++pos)
                 output[track][freq][pos] *= timeDecayConstant;
 
     
     // add current loudness values into output matrix
-    for (int track = 0; track < numTracks; ++track)
+    for (int track = 0; track < nTrackGroups; ++track)
     {
-        for (int freq = 0; freq < numFreqBins; ++freq)
+        for (int freq = 0; freq < nFreqBins; ++freq)
         {
             const float intensity = (float) roexBankOutput->getSample(track, freq, 0);
             if (intensity > intensityCutoffConstant)
@@ -140,7 +162,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                 // loudness - partial loudness
                 if (log(integratedLoudnessOutput->getSample(track, freq, 1)) - log(integratedLoudnessOutput->getSample(track, freq, 4)) > maskingThreshold)
                 {
-                    output[track+numTracks][freq][spatialBin] += intensity;
+                    output[track+nTrackGroups][freq][spatialBin] += intensity;
                 }
                 else
                 {
@@ -169,7 +191,7 @@ void Visualizer::paint (Graphics& g)
     const float winHeight = height - bottomBorder - topBorder;
     const float winWidth = width - leftBorder - rightBorder;
     const float maxXIndex = 180.0f; // number of degrees
-    const float maxYIndex = (float) numFreqBins;
+    const float maxYIndex = (float) nFreqBins;
     const float binHeight = winHeight / maxYIndex;
     const float binWidth = winWidth / maxXIndex;
     const float textWidth = 50.0f;
@@ -181,10 +203,10 @@ void Visualizer::paint (Graphics& g)
     if (detectionMode)
     {
         // only draw maskers
-        for (int track = 0; track < numTracks; ++track)
+        for (int track = 0; track < nTrackGroups; ++track)
         {
-            const int idx = track + numTracks;
-            for (int freq = 0; freq < numFreqBins; ++freq)
+            const int idx = track + nTrackGroups;
+            for (int freq = 0; freq < nFreqBins; ++freq)
             {
                 for (int pos = 0; pos < 180; ++pos)
                 {
@@ -206,9 +228,9 @@ void Visualizer::paint (Graphics& g)
     else
     {
         // draw the current output matrix
-        for (int track = 0; track < numTracks; ++track)
+        for (int track = 0; track < nTrackGroups; ++track)
         {
-            for (int freq = 0; freq < numFreqBins; ++freq)
+            for (int freq = 0; freq < nFreqBins; ++freq)
             {
                 for (int pos = 0; pos < 180; ++pos)
                 {
@@ -227,10 +249,10 @@ void Visualizer::paint (Graphics& g)
             }
         }
         // draw maskers
-        for (int track = 0; track < numTracks; ++track)
+        for (int track = 0; track < nTrackGroups; ++track)
         {
-            const int idx = track + numTracks;
-            for (int freq = 0; freq < numFreqBins; ++freq)
+            const int idx = track + nTrackGroups;
+            for (int freq = 0; freq < nFreqBins; ++freq)
             {
                 for (int pos = 0; pos < 180; ++pos)
                 {
@@ -312,7 +334,7 @@ void Visualizer::paint (Graphics& g)
     const float txtX = tickX - textWidth;
     g.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
     g.drawText ("0", Rectangle<float>(txtX, winHeight + topBorder, tickHeight, 10.0f), Justification(4), true);
-    for (int i = 0; i < numFreqBins; i += 10)
+    for (int i = 0; i < nFreqBins; i += 10)
     {
         const float yf = (float) i;
         g.fillRect (Rectangle<float>(   tickX, 
@@ -343,10 +365,61 @@ void Visualizer::timerCallback()
 
 Colour Visualizer::trackIntensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, 0.8f, intensity / intensityScalingConstant, 1.0f);
+    return Colour((float)track / (float)nTrackGroups, 0.8f, intensity / intensityScalingConstant, 1.0f);
 }
 
 Colour Visualizer::maskerIntensityToColour(const float intensity, const int track)
 {
-    return Colour((float)track / (float)numTracks, 0.2f, 1.0f, 1.0f);
+    return Colour((float)track / (float)nTrackGroups, 0.2f, 1.0f, 1.0f);
+}
+
+void Visualizer::buttonClicked (Button* buttonThatWasClicked)
+{
+    //[UserbuttonClicked_Pre]
+    if (buttonThatWasClicked == loadTracksButton)
+    {
+        FileChooser myChooser ("Please select the .xml file generated by Jack...",
+                               File::getSpecialLocation (File::userHomeDirectory),
+                               "*.xml");
+        std::cout << "Helloooooo" << std::endl;
+        if (myChooser.browseForFileToOpen())
+        {
+            // load the chosen file and get output sockets
+            File jackFile (myChooser.getResult());
+            String text = jackFile.loadFileAsString();
+            String textWithNames = text.fromFirstOccurrenceOf("<cables>", 0, 1).upToFirstOccurrenceOf("</cables>", 0, 1);
+
+            // initialize empty hashmap
+            // key is MixVis input socket
+            // value is track name
+            StringArray trackNames;
+
+            // while there are still output sockets
+            while (textWithNames.containsWholeWord("cable"))
+            {
+                // first thing should be a cable with name=
+                String cableText = textWithNames.fromFirstOccurrenceOf("output=",0,1).upToFirstOccurrenceOf(" type=",0,1).unquoted();
+                String name = cableText.upToFirstOccurrenceOf(" input=", 0, 1).unquoted();
+                int inputSocket = cableText.fromFirstOccurrenceOf(" input=\"Input Socket ", 0, 1).upToFirstOccurrenceOf("\"", 0, 1).getIntValue();
+
+                std::cout << inputSocket << ", " << name << std::endl;
+                // insert track name, adjust for 0 indexing
+                trackNames.insert(inputSocket-1, name);
+                textWithNames = textWithNames.fromFirstOccurrenceOf("/>",0,1);
+            }
+
+            // display the tracks with these new names
+            trackSelector->makeTrackBoxes(trackNames);
+        }
+    }
+    //[/UserbuttonClicked_Pre]
+
+    if (buttonThatWasClicked == startButton)
+    {
+        //[UserButtonCode_startButton] -- add your button handler code here..
+        //[/UserButtonCode_startButton]
+    }
+
+    //[UserbuttonClicked_Post]
+    //[/UserbuttonClicked_Post]
 }

@@ -38,7 +38,7 @@ class TrackBox  : public Component
 {
 public:
     //==============================================================================
-    TrackBox (String trackName_, Colour trackColour_);
+    TrackBox (String trackName_, Colour trackColour_, int trackIndex_);
     ~TrackBox();
 
     //==============================================================================
@@ -58,6 +58,7 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     Colour trackColour;
     String trackName;
+    int trackIndex; //corresponds to the input io socket of this track as read in the jack.xml file
     ComponentDragger dragger;
     ComponentBoundsConstrainer constrainer;
     //[/UserVariables]
