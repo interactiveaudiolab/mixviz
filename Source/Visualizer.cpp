@@ -11,7 +11,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Visualizer.h"
 #include <fftw3.h>
-#include <chrono>
 #include <math.h>
 #include <cstdio>
 #include <string>
@@ -99,16 +98,16 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 {
     // for each track group
     // NOTE: no gaps in the trackGroups array due to construction
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
+    //std::chrono::time_point<std::chrono::system_clock> start, end;
+    //start = std::chrono::system_clock::now();
 
     for (int groupIndex = 0; groupIndex < nTrackGroups; ++groupIndex)
     {
         // set inputs to model to zero
         for (int i = 0; i < numSamples; ++i)
         {
-            audioInputBank->setSample(2*groupIndex, 0, i, 0.000001); // right
-            audioInputBank->setSample(2*groupIndex+1, 0, i, 0.000001); // left
+            audioInputBank->setSample(2*groupIndex, 0, i, 0.0000001); // right
+            audioInputBank->setSample(2*groupIndex+1, 0, i, 0.0000001); // left
         }
 
         // loop over tracks in the group and add their data to the audioInputBank
@@ -127,9 +126,9 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     // run the model
     model->process(*audioInputBank);
-    end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
-    std::cout << "time to sum: " << elapsed_seconds.count() << std::endl;
+    //end = std::chrono::system_clock::now();
+    //std::chrono::duration<double> elapsed_seconds = end-start;
+    //std::cout << "time to sum: " << elapsed_seconds.count() << std::endl;
 
     // print to cout
     double il = 0;

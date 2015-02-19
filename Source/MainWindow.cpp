@@ -364,7 +364,7 @@ MainWindow::MainWindow ()
     loadTracksButton->setBounds(0, 600, 100, 20);
 
     addAndMakeVisible (trackSelector = new TrackSelector(this));
-    trackSelector->setTopLeftPosition(0,620);
+    trackSelector->setBounds(0,620, 800, 380);
     //[/Constructor]
 }
 

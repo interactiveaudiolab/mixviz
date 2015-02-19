@@ -42,26 +42,70 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
 
     //[Constructor] You can add your own custom stuff here..
     // initalize track groups
-    nTrackGroups = 4;
-    const int trackGroupsPerRow = 2;
-    const int trackGroupsPerCol = 2;
-    const int trackGroupHeight = 200;
-    const int trackGroupWidth = 200;
-    const int spacing = 60;
-    for (int i = 0; i < nTrackGroups; ++i)
+    nTrackGroups = 5;
+    const int nVisualizedTrackGroups = nTrackGroups - 1;
+    std::cout << "nVisualizedTrackGroups: " << nVisualizedTrackGroups << std::endl;
+    const int spacingBetweenTrackGroups = 30;
+    const int leftAndTopSpacing = 5;
+    const int width = getWidth() - leftAndTopSpacing * 2;
+    const int height = getHeight() - leftAndTopSpacing * 2;
+
+    // if there are more than 5 visualized track groups then we will make three rows
+    const int nTrackGroupsPerCol = ((nVisualizedTrackGroups > 5) ? 3 : 2);
+    std::cout << "nTrackGroupsPerCol: " << nTrackGroupsPerCol << std::endl;
+
+    // if there is an odd number of tracks then we will have to squeeze the extras in some rows
+    const int nExtraGroups = nVisualizedTrackGroups % nTrackGroupsPerCol;
+    std::cout << "nExtraGroups: " << nExtraGroups << std::endl;
+
+    // the number of TrackGroups to put in a row without an extra group in it
+    // the number of regular rows is nTrackGroupsPerCol - nExtraGroups
+    // the number of rows with an extra group is nExtraGroups
+    const int nTrackGroupsPerRegularRow = nVisualizedTrackGroups / nTrackGroupsPerCol;
+    std::cout << "nTrackGroupsPerRegularRow: " << nTrackGroupsPerRegularRow << std::endl; 
+
+    // calculate width and height of trackboxes, with no spacing on edges
+    // there is an extra track group at the bottom, so add one to nTrackGroupsPerCol
+    const int trackGroupHeight = (height / (nTrackGroupsPerCol + 1)) - (spacingBetweenTrackGroups * (nTrackGroupsPerCol));
+    const int trackGroupRegularWidth = (width / nTrackGroupsPerRegularRow) - (spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow - 1));
+    const int trackGroupExtraWidth = (width / (nTrackGroupsPerRegularRow + 1)) - (spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow));
+    std::cout << "height: " << trackGroupHeight << ", regular width: " << trackGroupRegularWidth << ", extra width: " << trackGroupExtraWidth << std::endl;
+
+    for (int i = 0; i < nVisualizedTrackGroups; ++i)
     {
-        Colour groupColour = Colour((float) i / (float) nTrackGroups, 0.8f, 1.0f, 1.0f);
+        // calculate color and add the group to the array
+        Colour groupColour = Colour((float) i / (float) nVisualizedTrackGroups, 0.8f, 1.0f, 1.0f);
         trackGroupContainers.add(new TrackGroupContainer(mainWindow, i, groupColour));
 
-        // make the new container visible and set position
+        // make the new TrackGroupContainer visible and set position
         addAndMakeVisible(trackGroupContainers[i]);
-        int row = i / trackGroupsPerRow;
-        int col = i % trackGroupsPerCol;
-        int topY = row * (trackGroupHeight + spacing);
-        int topX = col * (trackGroupWidth + spacing);
-        std::cout << "x: " << topX << " y: " << topY << std::endl;
-        trackGroupContainers[i]->setTopLeftPosition(topX, topY);
+        const int row = i / nTrackGroupsPerRegularRow;
+        const int col = i % nTrackGroupsPerCol;
+
+        // if this row is one with an extra group, we need to use trackGroupExtraWidth to calculate x position
+        const int topY = row * (trackGroupHeight + spacingBetweenTrackGroups) + leftAndTopSpacing;
+        int topX;
+        if (row >= nExtraGroups)
+        {          
+            topX = col * (trackGroupExtraWidth + spacingBetweenTrackGroups) + leftAndTopSpacing;
+            trackGroupContainers[i]->setBounds(topX, topY, trackGroupExtraWidth, trackGroupHeight);
+        }
+        else
+        {
+            topX = col * (trackGroupRegularWidth + spacingBetweenTrackGroups) + leftAndTopSpacing;
+            trackGroupContainers[i]->setBounds(topX, topY, trackGroupRegularWidth, trackGroupHeight);
+        }
+        
+        
     }
+
+    // make the last track group (tracks in this group are NOT visualized)
+    trackGroupContainers.add(new TrackGroupContainer(mainWindow, nTrackGroups-1, Colours::grey.brighter()));
+    addAndMakeVisible(trackGroupContainers[nTrackGroups-1]);
+    const int topY = (nTrackGroupsPerCol + 1) * (trackGroupHeight + spacingBetweenTrackGroups) + leftAndTopSpacing;
+    const int topX = leftAndTopSpacing;
+    trackGroupContainers[nTrackGroups-1]->setBounds(topX, topY, width, trackGroupHeight);
+
     //[/Constructor]
 }
 
@@ -108,39 +152,34 @@ void TrackSelector::makeTrackBoxes(StringArray trackNames)
 
     // calculate trackbox spacing
     const int spacing = 5;
-    const int trackBoxHeight = 20;
+    const int trackBoxHeight = 30;
     const int width = getWidth();
     const int height = getHeight();
-    const int tracksPerRow = 2;
-    const int tracksPerCol = 2;
-    const int trackBoxWidth = (width - (tracksPerRow * spacing)) / tracksPerRow;
+    const int trackBoxWidth = 50;
 
     int nTracks = trackNames.size();
     // note that the index in the trackBoxes array is the same as the io port for the track
     for (int i=0; i<nTracks; ++i)
     {
         // add new track to the trackBoxes array
-        // by default it is in group -1 (no group) and has a dark grey colour
-        trackBoxes.add(new TrackBox(trackNames[i], Colours::grey.darker(), i, -1));
+        // by default it is in group nTrackGroups (no group) and has a dark grey colour
+        trackBoxes.add(new TrackBox(trackNames[i], Colours::grey.darker(), i, nTrackGroups));
 
         // make the new TrackBox component visible
         addAndMakeVisible(trackBoxes[i]);
 
-        // for the first nTrackGroups tracks added, we want to put them into a track group
-        if (i < nTrackGroups)
+        // for the first nTrackGroups-1 tracks added, we want to put them into a track group
+        if (i < nTrackGroups-1)
         {
             trackGroupContainers[i]->addTrackToGroup(i);
             trackBoxes[i]->changeTrackGroup(i, trackGroupContainers[i]->getGroupColour());
             trackBoxes[i]->setTopLeftPosition(trackGroupContainers[i]->getPosition());
         }
-        // for the other track boxes, put them outside of any track groups
+        // for the other track boxes, put them in the unvisualized track group
         else
         {
-            int row = i / tracksPerRow;
-            int col = i % tracksPerCol;
-            int topY = row * (trackBoxHeight + spacing);
-            int topX = col * (trackBoxWidth + spacing);
-            trackBoxes[i]->setTopLeftPosition(topX, topY);
+            int xOffset = (i - nTrackGroups) * (trackBoxWidth + spacing);
+            trackBoxes[i]->setTopLeftPosition(trackGroupContainers[nTrackGroups-1]->getPosition().translated(xOffset, 0));
         }
     }
 }
