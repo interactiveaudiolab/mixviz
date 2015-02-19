@@ -78,6 +78,9 @@ private:
     ScopedPointer<Slider> timeDecayConstantSlider;
     ScopedPointer<Label> timeDecayConstantLabel;
 
+    ScopedPointer<Slider> maskingTimeDecayConstantSlider;
+    ScopedPointer<Label> maskingTimeDecayConstantLabel;
+
     ScopedPointer<Slider> maskingThresholdSlider;
     ScopedPointer<Label> maskingThresholdLabel;
 

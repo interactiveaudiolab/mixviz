@@ -32,7 +32,15 @@ Visualizer::Visualizer()
 
     // give settings default values
     // initialize track group arrays
-    changeSettings(5000.0f, 10.0f, 0.70, 2, 0);
+    nTrackGroups = 4;
+    nSpatialBins = 128;
+    intensityScalingConstant = 5000.0f;
+    intensityCutoffConstant = 10.0f;
+    timeDecayConstant = 0.50;
+    maskingTimeDecayConstant = 0.90;
+    maskingThreshold = 2;
+    detectionMode = false;
+
     for (int i =0; i < nTrackGroups; i++)
     {
         trackGroups.add(Array<int>());
@@ -63,21 +71,6 @@ Visualizer::Visualizer()
 
 Visualizer::~Visualizer()
 {
-}
-
-void Visualizer::changeSettings(const float intensityScalingConstant_,
-                                const float intensityCutoffConstant_,
-                                const double timeDecayConstant_,
-                                const double maskingThreshold_,
-                                const bool detectionMode_)
-{
-    nTrackGroups = 4;
-    nSpatialBins = 128;
-    intensityScalingConstant = intensityScalingConstant_;
-    intensityCutoffConstant = intensityCutoffConstant_;
-    timeDecayConstant = timeDecayConstant_;
-    maskingThreshold = maskingThreshold_;
-    detectionMode = detectionMode_;
 }
 
 void Visualizer::updateTracksInGroup(int groupIndex, Array<int> tracksInGroup)
@@ -114,8 +107,8 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
         // set inputs to model to zero
         for (int i = 0; i < numSamples; ++i)
         {
-            audioInputBank->setSample(2*groupIndex, 0, i, 0); // right
-            audioInputBank->setSample(2*groupIndex+1, 0, i, 0); // left
+            audioInputBank->setSample(2*groupIndex, 0, i, 0.000001); // right
+            audioInputBank->setSample(2*groupIndex+1, 0, i, 0.000001); // left
         }
 
         // loop over tracks in the group and add their data to the audioInputBank
@@ -134,7 +127,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     // run the model
     model->process(*audioInputBank);
-
     end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
     std::cout << "time to sum: " << elapsed_seconds.count() << std::endl;
@@ -146,12 +138,17 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     //std::cout << il << std::endl;
 
-    // apply time decay to current output
-    for (int track = 0; track < nTrackGroups * 2; ++track)
+    // apply time decay to current track output
+    for (int track = 0; track < nTrackGroups; ++track)
         for (int freq = 0; freq < nFreqBins; ++freq)
             for (int pos = 0; pos < 180; ++pos)
                 output[track][freq][pos] *= timeDecayConstant;
 
+    // apply masking time decay to current masking output
+    for (int track = nTrackGroups; track < nTrackGroups * 2; ++track)
+        for (int freq = 0; freq < nFreqBins; ++freq)
+            for (int pos = 0; pos < 180; ++pos)
+                output[track][freq][pos] *= maskingTimeDecayConstant;
     
     // add current loudness values into output matrix
     for (int track = 0; track < nTrackGroups; ++track)
@@ -183,7 +180,7 @@ void Visualizer::paint (Graphics& g)
 {
     g.fillAll (Colours::grey);   // clear the background
     const float leftBorder = 100.0f;
-    const float rightBorder = 30.0f;
+    const float rightBorder = 1.0f;
     const float bottomBorder = 40.0f;
     const float topBorder = 5.0f;
     const float height = (float) getHeight();
@@ -363,9 +360,29 @@ void Visualizer::timerCallback()
     repaint();
 }
 
-void Visualizer::printMe()
+void Visualizer::setIntensityScalingConstant(const float intensityScalingConstant_)
 {
-    std::cout << "Visualizer::PrintMe: " << intensityCutoffConstant << std::endl;
+    intensityScalingConstant = intensityScalingConstant_;
+}
+
+void Visualizer::setIntensityCutoffConstant(const float intensityCutoffConstant_)
+{
+    intensityCutoffConstant = intensityCutoffConstant_;
+}
+
+void Visualizer::setTimeDecayConstant(const double timeDecayConstant_)
+{
+    timeDecayConstant = timeDecayConstant_;
+}
+
+void Visualizer::setMaskingThreshold(const double maskingThreshold_)
+{
+    maskingThreshold = maskingThreshold_;
+}
+
+void Visualizer::setMaskingTimeDecayConstant(const double maskingTimeDecayConstant_)
+{
+    maskingTimeDecayConstant = maskingTimeDecayConstant_;
 }
 
 Colour Visualizer::trackIntensityToColour(const float intensity, const int track)

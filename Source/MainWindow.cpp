@@ -280,7 +280,7 @@ MainWindow::MainWindow ()
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (700, 1000);
+    setSize (800, 1000);
 
 
     //[Constructor] You can add your own custom stuff here..
@@ -311,7 +311,6 @@ MainWindow::MainWindow ()
         // throw an error somehow right here
     }
 
-    /* MOVE INTO SEPARATE COMPONENT
     // add the visualizer's settings panel with sliders
     addAndMakeVisible (intensityScalingConstantSlider = new Slider());
     addAndMakeVisible (intensityScalingConstantLabel = new Label(String("isc"), String("Intensity Scaling Constant")));
@@ -319,8 +318,8 @@ MainWindow::MainWindow ()
     intensityScalingConstantSlider->setRange (1, 15000);
     intensityScalingConstantSlider->setValue (5000);
     intensityScalingConstantSlider->addListener (this);
-    intensityScalingConstantSlider->setBounds(100,600,100,65);
-    intensityScalingConstantLabel->setBounds(100,670,100,65);
+    intensityScalingConstantSlider->setBounds(705,5,90,30);
+    intensityScalingConstantLabel->setBounds(705,35,90,40);
 
     addAndMakeVisible (intensityCutoffConstantSlider = new Slider());
     addAndMakeVisible (intensityCutoffConstantLabel = new Label(String("icc"), String("Intensity Cutoff Constant")));
@@ -328,17 +327,26 @@ MainWindow::MainWindow ()
     intensityCutoffConstantSlider->setRange (1, 50);
     intensityCutoffConstantSlider->setValue (10);
     intensityCutoffConstantSlider->addListener (this);
-    intensityCutoffConstantSlider->setBounds(250,600,100,65);
-    intensityCutoffConstantLabel->setBounds(250,670,100,65);
+    intensityCutoffConstantSlider->setBounds(705,105,90,30);
+    intensityCutoffConstantLabel->setBounds(705,135,90,40);
 
     addAndMakeVisible (timeDecayConstantSlider = new Slider());
     addAndMakeVisible (timeDecayConstantLabel = new Label(String("tdc"), String("Time Decay Constant")));
     timeDecayConstantSlider->setSliderStyle (Slider::LinearBar);
     timeDecayConstantSlider->setRange (0, 0.99);
-    timeDecayConstantSlider->setValue (0.70);
+    timeDecayConstantSlider->setValue (0.50);
     timeDecayConstantSlider->addListener (this);
-    timeDecayConstantSlider->setBounds(400,600,100,65);
-    timeDecayConstantLabel->setBounds(400,670,100,65);
+    timeDecayConstantSlider->setBounds(705,205,90,30);
+    timeDecayConstantLabel->setBounds(705,235,90,40);
+
+    addAndMakeVisible (maskingTimeDecayConstantSlider = new Slider());
+    addAndMakeVisible (maskingTimeDecayConstantLabel = new Label(String("tdc"), String("Masking Time Decay Constant")));
+    maskingTimeDecayConstantSlider->setSliderStyle (Slider::LinearBar);
+    maskingTimeDecayConstantSlider->setRange (0, 0.99);
+    maskingTimeDecayConstantSlider->setValue (0.90);
+    maskingTimeDecayConstantSlider->addListener (this);
+    maskingTimeDecayConstantSlider->setBounds(705,305,90,30);
+    maskingTimeDecayConstantLabel->setBounds(705,335,90,40);
 
     addAndMakeVisible (maskingThresholdSlider = new Slider());
     addAndMakeVisible (maskingThresholdLabel = new Label(String("mt"), String("Masking Threshold")));
@@ -346,9 +354,8 @@ MainWindow::MainWindow ()
     maskingThresholdSlider->setRange (0.1, 6);
     maskingThresholdSlider->setValue (2);
     maskingThresholdSlider->addListener (this);
-    maskingThresholdSlider->setBounds(550,600,100,65);
-    maskingThresholdLabel->setBounds(550,670,100,65);
-    */
+    maskingThresholdSlider->setBounds(705,405,90,30);
+    maskingThresholdLabel->setBounds(705,435,90,40);
 
     // add the tracks panel
     addAndMakeVisible (loadTracksButton = new TextButton("load"));
@@ -396,12 +403,6 @@ void MainWindow::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-void MainWindow::printMe()
-{
-    String name = visualizer->getName();
-    std::cout << "MainWindow::printMe: visualizer name: " << name << std::endl;
-}
-
 void MainWindow::updateVisualizerTracksInGroup (int groupIndex, Array<int> tracksInGroup)
 {
     visualizer->updateTracksInGroup(groupIndex, tracksInGroup);
@@ -447,8 +448,28 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
     }
 }
 
-void MainWindow::sliderValueChanged (Slider*)
+void MainWindow::sliderValueChanged (Slider* sliderThatWasMoved)
 {
+    if (sliderThatWasMoved == intensityScalingConstantSlider)
+    {
+        visualizer->setIntensityScalingConstant(intensityScalingConstantSlider->getValue());
+    }
+    else if (sliderThatWasMoved == intensityCutoffConstantSlider)
+    {
+        visualizer->setIntensityCutoffConstant(intensityCutoffConstantSlider->getValue());
+    }
+    else if (sliderThatWasMoved == timeDecayConstantSlider)
+    {
+        visualizer->setTimeDecayConstant(timeDecayConstantSlider->getValue());
+    }
+    else if (sliderThatWasMoved == maskingTimeDecayConstantSlider)
+    {
+        visualizer->setMaskingTimeDecayConstant(maskingTimeDecayConstantSlider->getValue());
+    }
+    else if (sliderThatWasMoved == maskingThresholdSlider)
+    {
+        visualizer->setMaskingThreshold(maskingThresholdSlider->getValue());
+    }
 }
 //[/MiscUserCode]
 

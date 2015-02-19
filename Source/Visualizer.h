@@ -29,11 +29,11 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
-    void changeSettings(const float intensityScalingConstant_,
-                        const float intensityCutoffConstant_,
-                        const double timeDecayConstant_,
-                        const double maskingThreshold_,
-                        const bool detectionMode_);
+    void setIntensityScalingConstant(const float intensityScalingConstant_);
+    void setIntensityCutoffConstant(const float intensityCutoffConstant_);
+    void setTimeDecayConstant(const double timeDecayConstant_);
+    void setMaskingTimeDecayConstant(const double maskingTimeDecayConstant_);
+    void setMaskingThreshold(const double maskingThreshold_);
     void updateTracksInGroup(int groupIndex, Array<int> tracksInGroup);
     void resized();
     void audioDeviceAboutToStart (AudioIODevice* device) override;
@@ -62,6 +62,7 @@ private:
     float intensityScalingConstant;
     float intensityCutoffConstant;
     double timeDecayConstant;
+    double maskingTimeDecayConstant;
     double maskingThreshold;
     bool detectionMode;
 
