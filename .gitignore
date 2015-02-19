@@ -1,5 +1,6 @@
 # ignore build files
-Build/Linux/build/MixVis
+Builds/Linux/build
+JuceLibraryCode
 
 # ignore .swp files
 *.swp
