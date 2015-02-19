@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Visualizer.h"
 #include <fftw3.h>
+#include <chrono>
 #include <math.h>
 #include <cstdio>
 #include <string>
@@ -81,11 +82,7 @@ void Visualizer::changeSettings(const float intensityScalingConstant_,
 
 void Visualizer::updateTracksInGroup(int groupIndex, Array<int> tracksInGroup)
 {
-    std::cout << "tracks in group size: " << tracksInGroup.size() << std::endl;
-    std::cout << "hello again!" << std::endl;
-    trackGroups.add(Array<int>());
-    std::cout << "trackgroups size: " << trackGroups.size() << std::endl;
-    //trackGroups.set(groupIndex, tracksInGroup);
+    trackGroups.set(groupIndex, tracksInGroup);
 }
 
 void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
@@ -109,6 +106,9 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 {
     // for each track group
     // NOTE: no gaps in the trackGroups array due to construction
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
     for (int groupIndex = 0; groupIndex < nTrackGroups; ++groupIndex)
     {
         // set inputs to model to zero
@@ -134,6 +134,10 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     // run the model
     model->process(*audioInputBank);
+
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::cout << "time to sum: " << elapsed_seconds.count() << std::endl;
 
     // print to cout
     double il = 0;
@@ -172,11 +176,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             }
         }
     }
-
-    // We need to clear the output buffers before returning, in case they're full of junk..
-    for (int j = 0; j < numOutputChannels; ++j)
-        if (outputChannelData[j] != nullptr)
-            zeromem (outputChannelData[j], sizeof (float) * (size_t) numSamples);
 }
 
 // this function is called at each timer callback,

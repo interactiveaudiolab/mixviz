@@ -38,11 +38,14 @@ class TrackBox  : public Component
 {
 public:
     //==============================================================================
-    TrackBox (String trackName_, Colour trackColour_, int trackIndex_);
+    TrackBox (String trackName_, Colour trackColour_, int trackIndex_, int trackGroupIndex_);
     ~TrackBox();
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+    void changeTrackGroup(int newTrackGroupIndex, Colour newColour);
+    int getTrackGroupIndex();
+    int getTrackIndex();
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -58,9 +61,8 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     Colour trackColour;
     String trackName;
-    int trackIndex; //corresponds to the input io socket of this track as read in the jack.xml file
-    ComponentDragger dragger;
-    ComponentBoundsConstrainer constrainer;
+    int trackIndex; // corresponds to the input io socket of this track as read in the jack.xml file
+    int trackGroupIndex; // the index of the current TrackGroup that this trackBox belongs to
     //[/UserVariables]
 
     //==============================================================================

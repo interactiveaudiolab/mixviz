@@ -27,10 +27,11 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-TrackBox::TrackBox (String trackName_, Colour trackColour_, int trackIndex_)
+TrackBox::TrackBox (String trackName_, Colour trackColour_, int trackIndex_, int trackGroupIndex_)
     : trackName(trackName_),
       trackColour(trackColour_),
-      trackIndex(trackIndex_)
+      trackIndex(trackIndex_),
+      trackGroupIndex(trackGroupIndex_)
 {
     setName ("TrackBox");
 
@@ -75,7 +76,7 @@ void TrackBox::paint (Graphics& g)
 void TrackBox::resized()
 {
     //[UserPreResize] Add your own custom resize code here..
-    constrainer.setMinimumOnscreenAmounts (getParentHeight(), getParentWidth(), getParentHeight(), getParentWidth());
+    //constrainer.setMinimumOnscreenAmounts (getParentHeight(), getParentWidth(), getParentHeight(), getParentWidth());
     //[/UserPreResize]
 
     //[UserResized] Add your own custom resize handling here..
@@ -97,20 +98,36 @@ void TrackBox::mouseExit (const MouseEvent& e)
 void TrackBox::mouseDown (const MouseEvent& e)
 {
     //[UserCode_mouseDown] -- Add your code here...
-    dragger.startDraggingComponent (this, e);
+    DragAndDropContainer* dragContainer = DragAndDropContainer::findParentDragContainerFor(this);
+    dragContainer->startDragging ("TrackBox", this);
     //[/UserCode_mouseDown]
 }
 
 void TrackBox::mouseDrag (const MouseEvent& e)
 {
     //[UserCode_mouseDrag] -- Add your code here...
-    dragger.dragComponent (this, e, &constrainer);
+    //dragger.dragComponent (this, e, &constrainer);
     //[/UserCode_mouseDrag]
 }
 
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
+void TrackBox::changeTrackGroup(int newTrackGroupIndex, Colour newTrackColour)
+{
+    trackGroupIndex = newTrackGroupIndex;
+    trackColour = newTrackColour;
+}
+
+int TrackBox::getTrackGroupIndex()
+{
+    return trackGroupIndex;
+}
+
+int TrackBox::getTrackIndex()
+{
+    return trackIndex;
+}
 //[/MiscUserCode]
 
 
@@ -124,8 +141,8 @@ void TrackBox::mouseDrag (const MouseEvent& e)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="TrackBox" componentName="TrackBox"
-                 parentClasses="public Component" constructorParams="String trackName_, Colour trackColour_, int trackIndex_"
-                 variableInitialisers="trackName(trackName_),&#10;trackColour(trackColour_),&#10;trackIndex(trackIndex_)"
+                 parentClasses="public Component" constructorParams="String trackName_, Colour trackColour_, int trackIndex_, int trackGroupIndex_"
+                 variableInitialisers="trackName(trackName_),&#10;trackColour(trackColour_),&#10;trackIndex(trackIndex_),&#10;trackGroupIndex(trackGroupIndex_)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="50" initialHeight="20">
   <METHODS>

@@ -48,6 +48,7 @@ public:
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
     void makeTrackBoxes(StringArray trackNames);
+    void switchTrackToNewGroup(int trackIndex, int oldTrackGroupIndex, int newTrackGroupIndex, Point<int> newPositionInGroupContainer);
     //[/UserMethods]
 
     void paint (Graphics& g);

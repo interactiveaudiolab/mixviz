@@ -116,12 +116,12 @@ void TrackSelector::makeTrackBoxes(StringArray trackNames)
     const int trackBoxWidth = (width - (tracksPerRow * spacing)) / tracksPerRow;
 
     int nTracks = trackNames.size();
-    // note that the index in the array is the same as the io port for the track
+    // note that the index in the trackBoxes array is the same as the io port for the track
     for (int i=0; i<nTracks; ++i)
     {
-        // calculate TrackBox colour and add it to the trackBoxes array
-        Colour boxColour = Colour((float) i / (float) nTracks, 0.8f, 1.0f, 1.0f);
-        trackBoxes.add(new TrackBox(trackNames[i], boxColour, i));
+        // add new track to the trackBoxes array
+        // by default it is in group -1 (no group) and has a dark grey colour
+        trackBoxes.add(new TrackBox(trackNames[i], Colours::grey.darker(), i, -1));
 
         // make the new TrackBox component visible
         addAndMakeVisible(trackBoxes[i]);
@@ -130,6 +130,7 @@ void TrackSelector::makeTrackBoxes(StringArray trackNames)
         if (i < nTrackGroups)
         {
             trackGroupContainers[i]->addTrackToGroup(i);
+            trackBoxes[i]->changeTrackGroup(i, trackGroupContainers[i]->getGroupColour());
             trackBoxes[i]->setTopLeftPosition(trackGroupContainers[i]->getPosition());
         }
         // for the other track boxes, put them outside of any track groups
@@ -142,6 +143,22 @@ void TrackSelector::makeTrackBoxes(StringArray trackNames)
             trackBoxes[i]->setTopLeftPosition(topX, topY);
         }
     }
+}
+
+void TrackSelector::switchTrackToNewGroup(int trackIndex, int oldTrackGroupIndex, int newTrackGroupIndex, Point<int> newPositionInGroupContainer)
+{
+    // remove the track from the the old TrackGroupContainer
+    trackGroupContainers[oldTrackGroupIndex]->removeTrackFromGroup(trackIndex);
+
+    // change the colour and group index of the TrackBox
+    Colour newGroupColour = trackGroupContainers[newTrackGroupIndex]->getGroupColour();
+    trackBoxes[trackIndex]->changeTrackGroup(newTrackGroupIndex, newGroupColour);
+
+    // add the track to the new TrackGroupContainer
+    trackGroupContainers[newTrackGroupIndex]->addTrackToGroup(trackIndex);
+
+    // reposition the track
+    trackBoxes[trackIndex]->setTopLeftPosition(trackGroupContainers[newTrackGroupIndex]->getPosition() + newPositionInGroupContainer);
 }
 //[/MiscUserCode]
 
