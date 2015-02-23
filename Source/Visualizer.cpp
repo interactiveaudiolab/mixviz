@@ -23,15 +23,12 @@ using namespace std;
 //==============================================================================
 Visualizer::Visualizer()
 {
-    // In your constructor, you should add any child components, and
-    // initialise any special settings that your component needs.
     setOpaque(true);
     startTimer(1000/30);
     setName("Music Visualizer Window");
 
     // give settings default values
     // initialize track group arrays
-    nTrackGroups = 4;
     nSpatialBins = 128;
     intensityScalingConstant = 5000.0f;
     intensityCutoffConstant = 10.0f;
@@ -39,12 +36,20 @@ Visualizer::Visualizer()
     maskingTimeDecayConstant = 0.90;
     maskingThreshold = 2;
     detectionMode = false;
+    changeNTrackGroups(4);
+}
 
+Visualizer::~Visualizer()
+{
+}
+
+void Visualizer::changeNTrackGroups(int newNTrackGroups)
+{
+    nTrackGroups = newNTrackGroups;
     for (int i =0; i < nTrackGroups; i++)
     {
         trackGroups.add(Array<int>());
     }
-    std::cout << "trackgroups size: " << trackGroups.size() << std::endl;
 
     audioInputBank = new loudness::TrackBank();
     audioInputBank->initialize(nTrackGroups * 2, 1, 1024, 44100);
@@ -66,10 +71,6 @@ Visualizer::Visualizer()
         for (int freq = 0; freq < nFreqBins; freq++)
             output[track][freq].assign(180, 0);
     }
-}
-
-Visualizer::~Visualizer()
-{
 }
 
 void Visualizer::updateTracksInGroup(int groupIndex, Array<int> tracksInGroup)
@@ -177,7 +178,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    g.fillAll (Colours::grey);   // clear the background
+    g.fillAll (Colour(175,175,175));   // 0xAFAFAF
     const float leftBorder = 100.0f;
     const float rightBorder = 1.0f;
     const float bottomBorder = 40.0f;
@@ -201,6 +202,7 @@ void Visualizer::paint (Graphics& g)
         // only draw maskers
         for (int track = 0; track < nTrackGroups; ++track)
         {
+            const Colour 
             const int idx = track + nTrackGroups;
             for (int freq = 0; freq < nFreqBins; ++freq)
             {

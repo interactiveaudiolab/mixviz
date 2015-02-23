@@ -385,7 +385,7 @@ void MainWindow::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (Colours::grey);
+    g.fillAll (Colour (0xffafafaf));
 
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
@@ -486,9 +486,9 @@ BEGIN_JUCER_METADATA
 <JUCER_COMPONENT documentType="Component" className="MainWindow" componentName=""
                  parentClasses="public Component, public ButtonListener, public SliderListener"
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
-                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="700"
+                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="800"
                  initialHeight="1000">
-  <BACKGROUND backgroundColour="ff808080"/>
+  <BACKGROUND backgroundColour="ffafafaf"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

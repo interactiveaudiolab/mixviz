@@ -86,7 +86,7 @@ private:
 
     ScopedPointer<Slider> detectionModeSlider;
 
-    
+
 
     // tracks
     //Slider numSpatialBinsSlider;

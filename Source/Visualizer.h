@@ -41,6 +41,7 @@ public:
     void audioDeviceIOCallback (const float** inputChannelData, int numInputChannels,
                                 float** outputChannelData, int numOutputChannels,
                                 int numSamples) override;
+    void changeNTrackGroups(int newNTrackGroups);
     void printMe();
 
 private:

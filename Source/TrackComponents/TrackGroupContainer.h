@@ -17,11 +17,13 @@
   ==============================================================================
 */
 
-#ifndef __JUCE_HEADER_3ACEDE7F045E12C4__
-#define __JUCE_HEADER_3ACEDE7F045E12C4__
+#ifndef __JUCE_HEADER_D10F0458577F46DE__
+#define __JUCE_HEADER_D10F0458577F46DE__
 
 //[Headers]     -- You can add your own extra header files here --
 #include "JuceHeader.h"
+#include "TrackBox.h"
+#include "../MainWindow.h"
 //[/Headers]
 
 
@@ -34,47 +36,49 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class TrackBox  : public Component
+class TrackGroupContainer  : public Component,
+                             public DragAndDropTarget
 {
 public:
     //==============================================================================
-    TrackBox (String trackName_, Colour trackColour_, int trackIndex_, int trackGroupIndex_);
-    ~TrackBox();
+    TrackGroupContainer (MainWindow* mainWindow_, int groupIndex_, Colour groupColour_);
+    ~TrackGroupContainer();
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    void changeTrackGroup(int newTrackGroupIndex, Colour newColour);
-    int getTrackGroupIndex();
-    int getTrackIndex();
-    Point<int> getStartingDragPositionRelativeToSelf();
+    void removeTrackFromGroup(int track);
+    void addTrackToGroup(int track);
+
+    Colour getGroupColour();
+
+    bool isInterestedInDragSource (const SourceDetails &dragSourceDetails);
+    void itemDragEnter(const SourceDetails &dragSourceDetails);
+    void itemDragExit (const SourceDetails &dragSourceDetails);
+    void itemDropped (const SourceDetails &dragSourceDetails);
     //[/UserMethods]
 
     void paint (Graphics& g);
     void resized();
-    void mouseEnter (const MouseEvent& e);
-    void mouseExit (const MouseEvent& e);
-    void mouseDown (const MouseEvent& e);
-    void mouseDrag (const MouseEvent& e);
 
 
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-    Point<int> startingDragPositionRelativeToSelf;
-    Colour trackColour;
-    String trackName;
-    int trackIndex; // corresponds to the input io socket of this track as read in the jack.xml file
-    int trackGroupIndex; // the index of the current TrackGroup that this trackBox belongs to
+    MainWindow* mainWindow;
+    int groupIndex;
+    Array<int> tracksInGroup;
+    Colour groupColour;
+    bool isCurrentlyDragTarget;
     //[/UserVariables]
 
     //==============================================================================
 
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackBox)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackGroupContainer)
 };
 
 //[EndFile] You can add extra defines here...
 //[/EndFile]
 
-#endif   // __JUCE_HEADER_3ACEDE7F045E12C4__
+#endif   // __JUCE_HEADER_D10F0458577F46DE__

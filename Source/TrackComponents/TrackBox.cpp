@@ -99,6 +99,7 @@ void TrackBox::mouseDown (const MouseEvent& e)
 {
     //[UserCode_mouseDown] -- Add your code here...
     DragAndDropContainer* dragContainer = DragAndDropContainer::findParentDragContainerFor(this);
+    startingDragPositionRelativeToSelf = e.getPosition();
     dragContainer->startDragging ("TrackBox", this);
     //[/UserCode_mouseDown]
 }
@@ -127,6 +128,11 @@ int TrackBox::getTrackGroupIndex()
 int TrackBox::getTrackIndex()
 {
     return trackIndex;
+}
+
+Point<int> TrackBox::getStartingDragPositionRelativeToSelf()
+{
+    return startingDragPositionRelativeToSelf;
 }
 //[/MiscUserCode]
 

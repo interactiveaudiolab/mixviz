@@ -37,16 +37,16 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (700, 400);
+    setSize (800, 400);
 
 
     //[Constructor] You can add your own custom stuff here..
     // initalize track groups
-    nTrackGroups = 5;
+    nTrackGroups = 10;
     const int nVisualizedTrackGroups = nTrackGroups - 1;
     std::cout << "nVisualizedTrackGroups: " << nVisualizedTrackGroups << std::endl;
-    const int spacingBetweenTrackGroups = 30;
-    const int leftAndTopSpacing = 5;
+    const int spacingBetweenTrackGroups = 20;
+    const int leftAndTopSpacing = 10;
     const int width = getWidth() - leftAndTopSpacing * 2;
     const int height = getHeight() - leftAndTopSpacing * 2;
 
@@ -62,49 +62,63 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
     // the number of regular rows is nTrackGroupsPerCol - nExtraGroups
     // the number of rows with an extra group is nExtraGroups
     const int nTrackGroupsPerRegularRow = nVisualizedTrackGroups / nTrackGroupsPerCol;
-    std::cout << "nTrackGroupsPerRegularRow: " << nTrackGroupsPerRegularRow << std::endl; 
+    std::cout << "nTrackGroupsPerRegularRow: " << nTrackGroupsPerRegularRow << std::endl;
 
     // calculate width and height of trackboxes, with no spacing on edges
     // there is an extra track group at the bottom, so add one to nTrackGroupsPerCol
-    const int trackGroupHeight = (height / (nTrackGroupsPerCol + 1)) - (spacingBetweenTrackGroups * (nTrackGroupsPerCol));
-    const int trackGroupRegularWidth = (width / nTrackGroupsPerRegularRow) - (spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow - 1));
-    const int trackGroupExtraWidth = (width / (nTrackGroupsPerRegularRow + 1)) - (spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow));
+    const int trackGroupHeight = (height - spacingBetweenTrackGroups * (nTrackGroupsPerCol)) / (nTrackGroupsPerCol + 1);
+    const int trackGroupRegularWidth = (width - spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow - 1)) / nTrackGroupsPerRegularRow;
+    const int trackGroupExtraWidth = (width - spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow)) / (nTrackGroupsPerRegularRow + 1);
     std::cout << "height: " << trackGroupHeight << ", regular width: " << trackGroupRegularWidth << ", extra width: " << trackGroupExtraWidth << std::endl;
 
+    // initialize row and col to 0
+    int row = 0;
+    int col = 0;
     for (int i = 0; i < nVisualizedTrackGroups; ++i)
     {
-        // calculate color and add the group to the array
+        // calculate color, add the group to the array make it visible
         Colour groupColour = Colour((float) i / (float) nVisualizedTrackGroups, 0.8f, 1.0f, 1.0f);
         trackGroupContainers.add(new TrackGroupContainer(mainWindow, i, groupColour));
-
-        // make the new TrackGroupContainer visible and set position
         addAndMakeVisible(trackGroupContainers[i]);
-        const int row = i / nTrackGroupsPerRegularRow;
-        const int col = i % nTrackGroupsPerCol;
 
-        // if this row is one with an extra group, we need to use trackGroupExtraWidth to calculate x position
+        bool moveToNextRow = false;
         const int topY = row * (trackGroupHeight + spacingBetweenTrackGroups) + leftAndTopSpacing;
         int topX;
-        if (row >= nExtraGroups)
-        {          
+        // if this row is one with an extra group, we need to use special handling
+        if (row >= nTrackGroupsPerCol - nExtraGroups)
+        {
             topX = col * (trackGroupExtraWidth + spacingBetweenTrackGroups) + leftAndTopSpacing;
             trackGroupContainers[i]->setBounds(topX, topY, trackGroupExtraWidth, trackGroupHeight);
+            // if this was the last box in the extra row
+            if (col == nTrackGroupsPerRegularRow) moveToNextRow = true;
         }
         else
         {
             topX = col * (trackGroupRegularWidth + spacingBetweenTrackGroups) + leftAndTopSpacing;
             trackGroupContainers[i]->setBounds(topX, topY, trackGroupRegularWidth, trackGroupHeight);
+            if (col == nTrackGroupsPerRegularRow - 1) moveToNextRow = true;
         }
-        
-        
+
+        // if we need to move to the next row, do it
+        if (moveToNextRow)
+        {
+            row += 1;
+            col = 0;
+        }
+        // else increment column
+        else
+        {
+            col += 1;
+        }
     }
 
     // make the last track group (tracks in this group are NOT visualized)
-    trackGroupContainers.add(new TrackGroupContainer(mainWindow, nTrackGroups-1, Colours::grey.brighter()));
-    addAndMakeVisible(trackGroupContainers[nTrackGroups-1]);
-    const int topY = (nTrackGroupsPerCol + 1) * (trackGroupHeight + spacingBetweenTrackGroups) + leftAndTopSpacing;
+    trackGroupContainers.add(new TrackGroupContainer(mainWindow, nVisualizedTrackGroups, Colours::grey));
+    addAndMakeVisible(trackGroupContainers[nVisualizedTrackGroups]);
+    const int topY = (nTrackGroupsPerCol) * (trackGroupHeight + spacingBetweenTrackGroups) + leftAndTopSpacing;
     const int topX = leftAndTopSpacing;
-    trackGroupContainers[nTrackGroups-1]->setBounds(topX, topY, width, trackGroupHeight);
+    std::cout << "topY: " << topY << ", topX: " << topX << std::endl;
+    trackGroupContainers[nVisualizedTrackGroups]->setBounds(topX, topY, width, trackGroupHeight);
 
     //[/Constructor]
 }
@@ -126,7 +140,7 @@ void TrackSelector::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (Colours::grey);
+    g.fillAll (Colour (0xffafafaf));
 
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
@@ -197,7 +211,9 @@ void TrackSelector::switchTrackToNewGroup(int trackIndex, int oldTrackGroupIndex
     trackGroupContainers[newTrackGroupIndex]->addTrackToGroup(trackIndex);
 
     // reposition the track
-    trackBoxes[trackIndex]->setTopLeftPosition(trackGroupContainers[newTrackGroupIndex]->getPosition() + newPositionInGroupContainer);
+    trackBoxes[trackIndex]->setTopLeftPosition(trackGroupContainers[newTrackGroupIndex]->getPosition()
+                                             + newPositionInGroupContainer
+                                             - trackBoxes[trackIndex]->getStartingDragPositionRelativeToSelf());
 }
 //[/MiscUserCode]
 
@@ -215,8 +231,8 @@ BEGIN_JUCER_METADATA
                  parentClasses="public Component, public DragAndDropContainer"
                  constructorParams="MainWindow* mainWindow_" variableInitialisers="mainWindow(mainWindow_)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="700" initialHeight="400">
-  <BACKGROUND backgroundColour="ff808080"/>
+                 fixedSize="0" initialWidth="800" initialHeight="400">
+  <BACKGROUND backgroundColour="ffafafaf"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
