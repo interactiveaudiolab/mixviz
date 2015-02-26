@@ -318,8 +318,12 @@ MainWindow::MainWindow ()
     intensityScalingConstantSlider->setRange (1, 15000);
     intensityScalingConstantSlider->setValue (5000);
     intensityScalingConstantSlider->addListener (this);
-    intensityScalingConstantSlider->setBounds(705,5,90,30);
-    intensityScalingConstantLabel->setBounds(705,35,90,40);
+    intensityScalingConstantSlider->setBounds(705,35,90,30);
+    intensityScalingConstantSlider->setTooltip("Increase this parameter in order to "
+                                                "decrease the 'sensitivity' of the visualization to "
+                                                "loudness and cause a color that would have been more "
+                                                "intense to be less intense.");
+    intensityScalingConstantLabel->attachToComponent(intensityScalingConstantSlider, false);
 
     addAndMakeVisible (intensityCutoffConstantSlider = new Slider());
     addAndMakeVisible (intensityCutoffConstantLabel = new Label(String("icc"), String("Intensity Cutoff Constant")));
@@ -327,8 +331,12 @@ MainWindow::MainWindow ()
     intensityCutoffConstantSlider->setRange (1, 50);
     intensityCutoffConstantSlider->setValue (10);
     intensityCutoffConstantSlider->addListener (this);
-    intensityCutoffConstantSlider->setBounds(705,105,90,30);
-    intensityCutoffConstantLabel->setBounds(705,135,90,40);
+    intensityCutoffConstantSlider->setBounds(705,135,90,30);
+    intensityCutoffConstantSlider->setTooltip("The Intensity Cutoff Constant represents the minimum specific loudness "
+                                               "that a sound must have in order to be visualized at all. "
+                                               "Increase this constant to descrease the amount of 'noise' "
+                                               "that is displayed.");
+    intensityCutoffConstantLabel->attachToComponent(intensityCutoffConstantSlider, false);
 
     addAndMakeVisible (timeDecayConstantSlider = new Slider());
     addAndMakeVisible (timeDecayConstantLabel = new Label(String("tdc"), String("Time Decay Constant")));
@@ -336,8 +344,12 @@ MainWindow::MainWindow ()
     timeDecayConstantSlider->setRange (0, 0.99);
     timeDecayConstantSlider->setValue (0.50);
     timeDecayConstantSlider->addListener (this);
-    timeDecayConstantSlider->setBounds(705,205,90,30);
-    timeDecayConstantLabel->setBounds(705,235,90,40);
+    timeDecayConstantSlider->setBounds(705,235,90,30);
+    timeDecayConstantLabel->attachToComponent(timeDecayConstantSlider, false);
+    timeDecayConstantSlider->setTooltip("The Time Decay Constant represents the amount smoothing over time "
+                                        "that the visualization will use for non-masked (non-whitened) visuals. A value of 0 means no smoothing "
+                                        "(transients appear and instantly disappear) and a value of 0.99 "
+                                        "means that visuals stick around for a while before disappearing.");
 
     addAndMakeVisible (maskingTimeDecayConstantSlider = new Slider());
     addAndMakeVisible (maskingTimeDecayConstantLabel = new Label(String("tdc"), String("Masking Time Decay Constant")));
@@ -345,8 +357,12 @@ MainWindow::MainWindow ()
     maskingTimeDecayConstantSlider->setRange (0, 0.99);
     maskingTimeDecayConstantSlider->setValue (0.90);
     maskingTimeDecayConstantSlider->addListener (this);
-    maskingTimeDecayConstantSlider->setBounds(705,305,90,30);
-    maskingTimeDecayConstantLabel->setBounds(705,335,90,40);
+    maskingTimeDecayConstantSlider->setBounds(705,335,90,30);
+    maskingTimeDecayConstantLabel->attachToComponent(maskingTimeDecayConstantSlider, false);
+    maskingTimeDecayConstantSlider->setTooltip("The Masking Time Decay Constant represents the amount smoothing over time "
+                                                "that the visualization will use for masked (whitened) visuals. A value of 0 means no smoothing "
+                                                "(transients appear and instantly disappear) and a value of 0.99 "
+                                                "means that detected masked locations stick around for a while before disappearing.");
 
     addAndMakeVisible (maskingThresholdSlider = new Slider());
     addAndMakeVisible (maskingThresholdLabel = new Label(String("mt"), String("Masking Threshold")));
@@ -354,14 +370,32 @@ MainWindow::MainWindow ()
     maskingThresholdSlider->setRange (0.1, 6);
     maskingThresholdSlider->setValue (2);
     maskingThresholdSlider->addListener (this);
-    maskingThresholdSlider->setBounds(705,405,90,30);
-    maskingThresholdLabel->setBounds(705,435,90,40);
+    maskingThresholdSlider->setBounds(705,435,90,30);
+    maskingThresholdLabel->attachToComponent(maskingThresholdSlider, false);
+    maskingThresholdSlider->setTooltip("The Masking Threshold represents the minimum threshold of "
+                                        "masking that must be detected for a track group to be "
+                                        "considered masked. Increase the masking threshold to "
+                                        "lower the amount of masking detected on the screen.");
 
     // add the tracks panel
     addAndMakeVisible (loadTracksButton = new TextButton("load"));
     loadTracksButton->setButtonText (TRANS("Load track names"));
     loadTracksButton->addListener (this);
-    loadTracksButton->setBounds(0, 600, 100, 20);
+    loadTracksButton->setBounds(20, 600, 100, 20);
+
+    addAndMakeVisible (numTrackGroupsSlider = new Slider());
+    addAndMakeVisible (numTrackGroupsLabel = new Label(String("tg"), String("Number of Groups")));
+    numTrackGroupsSlider->setSliderStyle (Slider::IncDecButtons);
+    numTrackGroupsSlider->setRange (4.0, 4.0, 1.0);
+    numTrackGroupsSlider->setValue(4);
+    numTrackGroupsSlider->setIncDecButtonsMode (Slider::incDecButtonsDraggable_Horizontal);
+    numTrackGroupsSlider->setTextBoxStyle (Slider::TextBoxRight, false, 30, 20);
+    numTrackGroupsSlider->addListener (this);
+    numTrackGroupsSlider->setBounds(130, 600, 100, 20);
+    numTrackGroupsLabel->attachToComponent(numTrackGroupsSlider, false);
+    numTrackGroupsSlider->setTooltip("The number of colored groups to display below. "
+                                      "The tracks placed in each group will be displayed "
+                                      "with the same color on the visualization.");
 
     addAndMakeVisible (trackSelector = new TrackSelector(this));
     trackSelector->setBounds(0,620, 800, 380);
@@ -385,7 +419,7 @@ void MainWindow::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (Colour (0xffafafaf));
+    g.fillAll (Colours::grey);
 
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
@@ -443,13 +477,14 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
             }
 
             // display the tracks with these new names
-            trackSelector->makeTrackBoxes(trackNames);
+            trackSelector->setTrackNames(trackNames);
         }
     }
 }
 
 void MainWindow::sliderValueChanged (Slider* sliderThatWasMoved)
 {
+    std::cout << "reaching this" << std::endl;
     if (sliderThatWasMoved == intensityScalingConstantSlider)
     {
         visualizer->setIntensityScalingConstant(intensityScalingConstantSlider->getValue());
@@ -470,6 +505,14 @@ void MainWindow::sliderValueChanged (Slider* sliderThatWasMoved)
     {
         visualizer->setMaskingThreshold(maskingThresholdSlider->getValue());
     }
+    else if (sliderThatWasMoved == numTrackGroupsSlider)
+    {
+        // have to clear the track groups before changing the number of group containers
+        // otherwise the groups will get muddled when TrackBoxes are added back to groups
+        //visualizer->clearTrackGroups();
+        //trackSelector->changeNTrackGroupContainers((int) numTrackGroupsSlider->getValue() + 1);
+        //visualizer->changeNTrackGroups((int) numTrackGroupsSlider->getValue());
+    }
 }
 //[/MiscUserCode]
 
@@ -488,7 +531,7 @@ BEGIN_JUCER_METADATA
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="800"
                  initialHeight="1000">
-  <BACKGROUND backgroundColour="ffafafaf"/>
+  <BACKGROUND backgroundColour="ff808080"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

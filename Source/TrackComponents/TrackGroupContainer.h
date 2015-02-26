@@ -55,6 +55,7 @@ public:
     void itemDragEnter(const SourceDetails &dragSourceDetails);
     void itemDragExit (const SourceDetails &dragSourceDetails);
     void itemDropped (const SourceDetails &dragSourceDetails);
+    void addLabel (String labelText);
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -64,6 +65,7 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    ScopedPointer<Label> groupLabel;
     MainWindow* mainWindow;
     int groupIndex;
     Array<int> tracksInGroup;

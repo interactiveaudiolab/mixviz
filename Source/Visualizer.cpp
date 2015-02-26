@@ -22,37 +22,21 @@ using namespace std;
 
 //==============================================================================
 Visualizer::Visualizer()
+    : nTrackGroups(4),
+      nSpatialBins(128),
+      intensityScalingConstant(5000.0f),
+      intensityCutoffConstant(10.0f),
+      timeDecayConstant(0.50),
+      maskingTimeDecayConstant(0.90),
+      maskingThreshold(2),
+      detectionMode(false)
 {
     setOpaque(true);
     startTimer(1000/30);
     setName("Music Visualizer Window");
 
-    // give settings default values
-    // initialize track group arrays
-    nSpatialBins = 128;
-    intensityScalingConstant = 5000.0f;
-    intensityCutoffConstant = 10.0f;
-    timeDecayConstant = 0.50;
-    maskingTimeDecayConstant = 0.90;
-    maskingThreshold = 2;
-    detectionMode = false;
-    changeNTrackGroups(4);
-}
-
-Visualizer::~Visualizer()
-{
-}
-
-void Visualizer::changeNTrackGroups(int newNTrackGroups)
-{
-    nTrackGroups = newNTrackGroups;
-    for (int i =0; i < nTrackGroups; i++)
-    {
-        trackGroups.add(Array<int>());
-    }
-
     audioInputBank = new loudness::TrackBank();
-    audioInputBank->initialize(nTrackGroups * 2, 1, 1024, 44100);
+    audioInputBank->initialize(2 * nTrackGroups, 1, 1024, 44100);
 
     model = new loudness::DynamicPartialLoudnessGM("44100_IIR_23_freemid.npy");
     model->initialize(*audioInputBank);
@@ -64,13 +48,54 @@ void Visualizer::changeNTrackGroups(int newNTrackGroups)
 
     nFreqBins = roexBankOutput->getNChannels();
     cutoffFreqs = roexBankOutput->getCentreFreqs();
-    output.resize(nTrackGroups * 2);
-    for (int track = 0; track < nTrackGroups * 2; track++)
+    
+    output.resize(2 * nTrackGroups);
+    for (int track = 0; track < 2 * nTrackGroups; track++)
     {
         output[track].resize(nFreqBins);
         for (int freq = 0; freq < nFreqBins; freq++)
             output[track][freq].assign(180, 0);
     }
+
+    for (int i =0; i < nTrackGroups; i++)
+    {
+        trackGroups.add(Array<int>());
+        groupHues.add((float) i / (float) nTrackGroups);
+    }
+}
+
+Visualizer::~Visualizer()
+{
+}
+
+void Visualizer::changeNTrackGroups(int newNTrackGroups)
+{
+    nTrackGroups = newNTrackGroups;
+    groupHues.clear();
+    for (int i =0; i < nTrackGroups; i++)
+    {
+        trackGroups.add(Array<int>());
+        groupHues.add((float) i / (float) nTrackGroups);
+    }
+
+    model->reset();
+    audioInputBank->resize(2 * nTrackGroups);
+    std::cout << "get input n tracks" << audioInputBank->getNTracks() << std::endl;
+    model->initialize(*audioInputBank);
+
+    output.resize(2 * nTrackGroups);
+    for (int track = 0; track < 2 * nTrackGroups; track++)
+    {
+        output[track].resize(nFreqBins);
+        for (int freq = 0; freq < nFreqBins; freq++)
+            output[track][freq].assign(180, 0);
+    }
+}
+
+void Visualizer::clearTrackGroups()
+{
+    nTrackGroups = 0;
+    trackGroups.clear();
 }
 
 void Visualizer::updateTracksInGroup(int groupIndex, Array<int> tracksInGroup)
@@ -127,16 +152,10 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
     // run the model
     model->process(*audioInputBank);
-    //end = std::chrono::system_clock::now();
-    //std::chrono::duration<double> elapsed_seconds = end-start;
-    //std::cout << "time to sum: " << elapsed_seconds.count() << std::endl;
 
-    // print to cout
-    double il = 0;
-    for (int freq = 0; freq < nFreqBins; ++freq)
-        il += partialLoudnessOutput->getSample(1, freq, 1);
-
-    //std::cout << il << std::endl;
+    //double il = 0;
+    //for (int freq = 0; freq < nFreqBins; ++freq)
+    //    il += partialLoudnessOutput->getSample(1, freq, 1);
 
     // apply time decay to current track output
     for (int track = 0; track < nTrackGroups; ++track)
@@ -145,7 +164,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
                 output[track][freq][pos] *= timeDecayConstant;
 
     // apply masking time decay to current masking output
-    for (int track = nTrackGroups; track < nTrackGroups * 2; ++track)
+    for (int track = nTrackGroups; track < 2 * nTrackGroups; ++track)
         for (int freq = 0; freq < nFreqBins; ++freq)
             for (int pos = 0; pos < 180; ++pos)
                 output[track][freq][pos] *= maskingTimeDecayConstant;
@@ -178,7 +197,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    g.fillAll (Colour(175,175,175));   // 0xAFAFAF
+    g.fillAll (Colours::grey);
     const float leftBorder = 100.0f;
     const float rightBorder = 1.0f;
     const float bottomBorder = 40.0f;
@@ -202,7 +221,7 @@ void Visualizer::paint (Graphics& g)
         // only draw maskers
         for (int track = 0; track < nTrackGroups; ++track)
         {
-            const Colour 
+            const float groupHue = groupHues[track];
             const int idx = track + nTrackGroups;
             for (int freq = 0; freq < nFreqBins; ++freq)
             {
@@ -213,7 +232,7 @@ void Visualizer::paint (Graphics& g)
                     {
                         const float xf = (float) pos; // add 90 so all values are positive
                         const float yf = (float) freq;
-                        g.setColour(trackIntensityToColour(intensity,track));
+                        g.setColour(trackIntensityToColour(intensity, groupHue));
                         g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
@@ -228,6 +247,7 @@ void Visualizer::paint (Graphics& g)
         // draw the current output matrix
         for (int track = 0; track < nTrackGroups; ++track)
         {
+            const float groupHue = groupHues[track];
             for (int freq = 0; freq < nFreqBins; ++freq)
             {
                 for (int pos = 0; pos < 180; ++pos)
@@ -237,7 +257,7 @@ void Visualizer::paint (Graphics& g)
                     {
                         const float xf = (float) pos; // add 90 so all values are positive
                         const float yf = (float) freq;
-                        g.setColour(trackIntensityToColour(intensity,track));
+                        g.setColour(trackIntensityToColour(intensity, groupHue));
                         g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
@@ -247,19 +267,19 @@ void Visualizer::paint (Graphics& g)
             }
         }
         // draw maskers
-        for (int track = 0; track < nTrackGroups; ++track)
+        for (int track = nTrackGroups; track < 2 * nTrackGroups; ++track)
         {
-            const int idx = track + nTrackGroups;
+            const float groupHue = groupHues[track - nTrackGroups];
             for (int freq = 0; freq < nFreqBins; ++freq)
             {
                 for (int pos = 0; pos < 180; ++pos)
                 {
-                    const float intensity = output[idx][freq][pos];
+                    const float intensity = output[track][freq][pos];
                     if (intensity > intensityCutoffConstant)
                     {
                         const float xf = (float) pos; // add 90 so all values are positive
                         const float yf = (float) freq;
-                        g.setColour(maskerIntensityToColour(intensity,track));
+                        g.setColour(maskerIntensityToColour(intensity, groupHue));
                         g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
@@ -386,12 +406,12 @@ void Visualizer::setMaskingTimeDecayConstant(const double maskingTimeDecayConsta
     maskingTimeDecayConstant = maskingTimeDecayConstant_;
 }
 
-Colour Visualizer::trackIntensityToColour(const float intensity, const int track)
+Colour Visualizer::trackIntensityToColour(const float intensity, const float groupHue)
 {
-    return Colour((float)track / (float)nTrackGroups, 0.8f, intensity / intensityScalingConstant, 1.0f);
+    return Colour(groupHue, 0.8f, intensity / intensityScalingConstant, 1.0f);
 }
 
-Colour Visualizer::maskerIntensityToColour(const float intensity, const int track)
+Colour Visualizer::maskerIntensityToColour(const float intensity, const float groupHue)
 {
-    return Colour((float)track / (float)nTrackGroups, 0.2f, 1.0f, 1.0f);
+    return Colour(groupHue, 0.2f, 1.0f, 1.0f);
 }

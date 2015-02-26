@@ -30,7 +30,8 @@
 TrackGroupContainer::TrackGroupContainer (MainWindow* mainWindow_, int groupIndex_, Colour groupColour_)
     : mainWindow(mainWindow_),
       groupIndex(groupIndex_),
-      groupColour(groupColour_)
+      groupColour(groupColour_),
+      isCurrentlyDragTarget(false)
 {
 
     //[UserPreSize]
@@ -40,7 +41,6 @@ TrackGroupContainer::TrackGroupContainer (MainWindow* mainWindow_, int groupInde
 
 
     //[Constructor] You can add your own custom stuff here..
-    // get grandparent, which is MainWindow
     //[/Constructor]
 }
 
@@ -66,11 +66,11 @@ void TrackGroupContainer::paint (Graphics& g)
     //[UserPaint] Add your own custom painting code here..
     if (isCurrentlyDragTarget)
     {
-        g.fillAll (groupColour.interpolatedWith(Colour(175,175,175), 0.55));
+        g.fillAll (groupColour.interpolatedWith(Colours::grey, 0.55));
     }
     else
     {
-        g.fillAll (groupColour.interpolatedWith(Colour(175,175,175), 0.85));
+        g.fillAll (groupColour.interpolatedWith(Colours::grey, 0.85));
     }
 
     g.setColour(groupColour);
@@ -90,6 +90,15 @@ void TrackGroupContainer::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
+void TrackGroupContainer::addLabel(String labelText)
+{
+    addAndMakeVisible(groupLabel = new Label("group label", labelText));
+    groupLabel->setColour(Label::textColourId, groupColour.interpolatedWith(Colours::grey, 0.99));
+    groupLabel->setBounds(0, 0, getWidth(), getHeight());
+    groupLabel->setFont(groupLabel->getFont().withHeight(getHeight()/2));
+    groupLabel->setJustificationType(4);
+}
+
 void TrackGroupContainer::removeTrackFromGroup(int track)
 {
     std::cout << "Removing track from group " << groupIndex << ", old size: " << tracksInGroup.size();
@@ -163,7 +172,7 @@ BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="TrackGroupContainer" componentName=""
                  parentClasses="public Component, public DragAndDropTarget" constructorParams="MainWindow* mainWindow_, int groupIndex_, Colour groupColour_"
-                 variableInitialisers="mainWindow(mainWindow_),&#10;groupIndex(groupIndex_),&#10;groupColour(groupColour_)"
+                 variableInitialisers="mainWindow(mainWindow_),&#10;groupIndex(groupIndex_),&#10;groupColour(groupColour_),&#10;isCurrentlyDragTarget(false)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="200" initialHeight="200">
   <BACKGROUND backgroundColour="ffafafaf"/>

@@ -29,30 +29,33 @@ public:
     ~Visualizer();
 
     void paint (Graphics&);
+    void resized();
+
     void setIntensityScalingConstant(const float intensityScalingConstant_);
     void setIntensityCutoffConstant(const float intensityCutoffConstant_);
     void setTimeDecayConstant(const double timeDecayConstant_);
     void setMaskingTimeDecayConstant(const double maskingTimeDecayConstant_);
     void setMaskingThreshold(const double maskingThreshold_);
-    void updateTracksInGroup(int groupIndex, Array<int> tracksInGroup);
-    void resized();
+
     void audioDeviceAboutToStart (AudioIODevice* device) override;
     void audioDeviceStopped();
     void audioDeviceIOCallback (const float** inputChannelData, int numInputChannels,
                                 float** outputChannelData, int numOutputChannels,
                                 int numSamples) override;
+
+    void updateTracksInGroup(int groupIndex, Array<int> tracksInGroup);
+    void clearTrackGroups();
     void changeNTrackGroups(int newNTrackGroups);
-    void printMe();
 
 private:
     // data structures for masking model
     // turn these into arbitrary sized vectors
-    loudness::TrackBank *audioInputBank;
-    const loudness::TrackBank *powerSpectrumOutput;
-    const loudness::TrackBank *roexBankOutput;
-    const loudness::TrackBank *partialLoudnessOutput;
-    const loudness::TrackBank *integratedLoudnessOutput;
-    loudness::DynamicPartialLoudnessGM *model;
+    loudness::TrackBank* audioInputBank;
+    const loudness::TrackBank* powerSpectrumOutput;
+    const loudness::TrackBank* roexBankOutput;
+    const loudness::TrackBank* partialLoudnessOutput;
+    const loudness::TrackBank* integratedLoudnessOutput;
+    loudness::DynamicPartialLoudnessGM* model;
     std::vector <std::vector <std::vector<double>> > output; // [track][freq][pos]
     std::vector<double> cutoffFreqs;
 
@@ -70,6 +73,7 @@ private:
     // an array when index is the group index and 
     // values in the array at that index represent io port numbers of tracks in the group
     Array<Array<int>> trackGroups;
+    Array<float> groupHues;
     
     // info about the audio device this component is recieving input from
     double fs;
@@ -80,8 +84,8 @@ private:
     void timerCallback() override;
 
     // useful helper functions
-    Colour trackIntensityToColour(const float intensity, const int track);
-    Colour maskerIntensityToColour(const float intensity, const int track);
+    Colour trackIntensityToColour(const float intensity, const float groupHue);
+    Colour maskerIntensityToColour(const float intensity, const float groupHue);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Visualizer)
 };

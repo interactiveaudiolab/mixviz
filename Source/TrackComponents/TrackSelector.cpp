@@ -41,10 +41,53 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
 
 
     //[Constructor] You can add your own custom stuff here..
-    // initalize track groups
-    nTrackGroups = 10;
+    changeNTrackGroupContainers(5);
+    //[/Constructor]
+}
+
+TrackSelector::~TrackSelector()
+{
+    //[Destructor_pre]. You can add your own custom destruction code here..
+    //[/Destructor_pre]
+
+
+
+    //[Destructor]. You can add your own custom destruction code here..
+    //[/Destructor]
+}
+
+//==============================================================================
+void TrackSelector::paint (Graphics& g)
+{
+    //[UserPrePaint] Add your own custom painting code here..
+    //[/UserPrePaint]
+
+    g.fillAll (Colours::grey);
+
+    //[UserPaint] Add your own custom painting code here..
+    //[/UserPaint]
+}
+
+void TrackSelector::resized()
+{
+    //[UserPreResize] Add your own custom resize code here..
+    //[/UserPreResize]
+
+    //[UserResized] Add your own custom resize handling here..
+    //[/UserResized]
+}
+
+
+
+//[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
+void TrackSelector::changeNTrackGroupContainers(int newNTrackGroups)
+{
+    nTrackGroups = newNTrackGroups;
+
+    // delete any previous child components
+    trackGroupContainers.clear();
+
     const int nVisualizedTrackGroups = nTrackGroups - 1;
-    std::cout << "nVisualizedTrackGroups: " << nVisualizedTrackGroups << std::endl;
     const int spacingBetweenTrackGroups = 20;
     const int leftAndTopSpacing = 10;
     const int width = getWidth() - leftAndTopSpacing * 2;
@@ -52,24 +95,20 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
 
     // if there are more than 5 visualized track groups then we will make three rows
     const int nTrackGroupsPerCol = ((nVisualizedTrackGroups > 5) ? 3 : 2);
-    std::cout << "nTrackGroupsPerCol: " << nTrackGroupsPerCol << std::endl;
 
     // if there is an odd number of tracks then we will have to squeeze the extras in some rows
     const int nExtraGroups = nVisualizedTrackGroups % nTrackGroupsPerCol;
-    std::cout << "nExtraGroups: " << nExtraGroups << std::endl;
 
     // the number of TrackGroups to put in a row without an extra group in it
     // the number of regular rows is nTrackGroupsPerCol - nExtraGroups
     // the number of rows with an extra group is nExtraGroups
     const int nTrackGroupsPerRegularRow = nVisualizedTrackGroups / nTrackGroupsPerCol;
-    std::cout << "nTrackGroupsPerRegularRow: " << nTrackGroupsPerRegularRow << std::endl;
 
     // calculate width and height of trackboxes, with no spacing on edges
     // there is an extra track group at the bottom, so add one to nTrackGroupsPerCol
     const int trackGroupHeight = (height - spacingBetweenTrackGroups * (nTrackGroupsPerCol)) / (nTrackGroupsPerCol + 1);
     const int trackGroupRegularWidth = (width - spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow - 1)) / nTrackGroupsPerRegularRow;
     const int trackGroupExtraWidth = (width - spacingBetweenTrackGroups * (nTrackGroupsPerRegularRow)) / (nTrackGroupsPerRegularRow + 1);
-    std::cout << "height: " << trackGroupHeight << ", regular width: " << trackGroupRegularWidth << ", extra width: " << trackGroupExtraWidth << std::endl;
 
     // initialize row and col to 0
     int row = 0;
@@ -99,6 +138,8 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
             if (col == nTrackGroupsPerRegularRow - 1) moveToNextRow = true;
         }
 
+        trackGroupContainers[i]->addLabel("Group" + String(i+1));
+
         // if we need to move to the next row, do it
         if (moveToNextRow)
         {
@@ -113,56 +154,31 @@ TrackSelector::TrackSelector (MainWindow* mainWindow_)
     }
 
     // make the last track group (tracks in this group are NOT visualized)
-    trackGroupContainers.add(new TrackGroupContainer(mainWindow, nVisualizedTrackGroups, Colours::grey));
+    trackGroupContainers.add(new TrackGroupContainer(mainWindow, nVisualizedTrackGroups, Colours::grey.brighter()));
     addAndMakeVisible(trackGroupContainers[nVisualizedTrackGroups]);
     const int topY = (nTrackGroupsPerCol) * (trackGroupHeight + spacingBetweenTrackGroups) + leftAndTopSpacing;
     const int topX = leftAndTopSpacing;
-    std::cout << "topY: " << topY << ", topX: " << topX << std::endl;
     trackGroupContainers[nVisualizedTrackGroups]->setBounds(topX, topY, width, trackGroupHeight);
+    trackGroupContainers[nVisualizedTrackGroups]->addLabel("Not Visualized");
 
-    //[/Constructor]
+    // if there are currently trackboxes we need to replace them
+    if (trackBoxes.size() > 0)
+    {
+        makeTrackBoxes();
+    }
 }
 
-TrackSelector::~TrackSelector()
+void TrackSelector::setTrackNames(StringArray trackNames_)
 {
-    //[Destructor_pre]. You can add your own custom destruction code here..
-    //[/Destructor_pre]
-
-
-
-    //[Destructor]. You can add your own custom destruction code here..
-    //[/Destructor]
+    // set the names and then trigger the drawing
+    trackNames = trackNames_;
+    makeTrackBoxes();
 }
 
-//==============================================================================
-void TrackSelector::paint (Graphics& g)
+void TrackSelector::makeTrackBoxes()
 {
-    //[UserPrePaint] Add your own custom painting code here..
-    //[/UserPrePaint]
-
-    g.fillAll (Colour (0xffafafaf));
-
-    //[UserPaint] Add your own custom painting code here..
-    //[/UserPaint]
-}
-
-void TrackSelector::resized()
-{
-    //[UserPreResize] Add your own custom resize code here..
-    //[/UserPreResize]
-
-    //[UserResized] Add your own custom resize handling here..
-    //[/UserResized]
-}
-
-
-
-//[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-void TrackSelector::makeTrackBoxes(StringArray trackNames)
-{
-    // remove any previous TrackBoxes'
-    // NOTE: fix this to actually remove the correct children
-    // removeAllChildren();
+    // remove any previous TrackBoxes
+    trackBoxes.clear();
 
     // calculate trackbox spacing
     const int spacing = 5;
@@ -232,7 +248,7 @@ BEGIN_JUCER_METADATA
                  constructorParams="MainWindow* mainWindow_" variableInitialisers="mainWindow(mainWindow_)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="800" initialHeight="400">
-  <BACKGROUND backgroundColour="ffafafaf"/>
+  <BACKGROUND backgroundColour="ff808080"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

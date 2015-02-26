@@ -47,7 +47,9 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    void makeTrackBoxes(StringArray trackNames);
+    void setTrackNames(StringArray trackNames_);
+    void makeTrackBoxes();
+    void changeNTrackGroupContainers(int newNTrackGroups);
     void switchTrackToNewGroup(int trackIndex, int oldTrackGroupIndex, int newTrackGroupIndex, Point<int> newPositionInGroupContainer);
     //[/UserMethods]
 
@@ -62,6 +64,7 @@ private:
     int nTrackGroups;
     int nTrackBoxes;
     OwnedArray<TrackBox> trackBoxes;
+    StringArray trackNames;
     OwnedArray<TrackGroupContainer> trackGroupContainers;
     //[/UserVariables]
 

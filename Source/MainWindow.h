@@ -62,13 +62,18 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     ScopedPointer<AudioIODevice> audioIODevice;
     ScopedPointer<AudioIODeviceType> audioIODeviceType;
+    TooltipWindow tooltipWindow;
 
     // displayed child components
-    ScopedPointer<TextButton> loadTracksButton; // load tracks button
     ScopedPointer<TrackSelector> trackSelector; // track selector
     ScopedPointer<Visualizer> visualizer; // visualizer component
 
     // settings sliders and buttons
+    ScopedPointer<TextButton> loadTracksButton; // load tracks button
+
+    ScopedPointer<Slider> numTrackGroupsSlider;
+    ScopedPointer<Label> numTrackGroupsLabel;
+
     ScopedPointer<Slider> intensityCutoffConstantSlider;
     ScopedPointer<Label> intensityCutoffConstantLabel;
 
