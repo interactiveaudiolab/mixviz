@@ -294,7 +294,7 @@ MainWindow::MainWindow ()
     {
         audioIODeviceType->scanForDevices();
         StringArray deviceNames (audioIODeviceType->getDeviceNames());
-     file:///home/jon/JUCE/html/classjuce_1_1BigInteger.html   textEditor->insertTextAtCaret(deviceNames[0]);
+     //file:///home/jon/JUCE/html/classjuce_1_1BigInteger.html   textEditor->insertTextAtCaret(deviceNames[0]);
         audioIODevice = audioIODeviceType->createDevice(deviceNames[0],deviceNames[0]);
     } else {
         // throw an error for no jack audio device
@@ -303,7 +303,7 @@ MainWindow::MainWindow ()
     // makes a new visualizer with default settings
     addAndMakeVisible (visualizer = new Visualizer());
     visualizer->setBounds(0,0,700,600);
-    audioIODevice->open(BigInteger(255),BigInteger(255),44100,1024);
+    audioIODevice->open(BigInteger(65535),BigInteger(0),44100,1024);
     if (audioIODevice->isOpen())
     {
         audioIODevice->start(visualizer);
@@ -386,7 +386,7 @@ MainWindow::MainWindow ()
     addAndMakeVisible (numTrackGroupsSlider = new Slider());
     addAndMakeVisible (numTrackGroupsLabel = new Label(String("tg"), String("Number of Groups")));
     numTrackGroupsSlider->setSliderStyle (Slider::IncDecButtons);
-    numTrackGroupsSlider->setRange (4.0, 4.0, 1.0);
+    numTrackGroupsSlider->setRange (4.0, 9.0, 1.0);
     numTrackGroupsSlider->setValue(4);
     numTrackGroupsSlider->setIncDecButtonsMode (Slider::incDecButtonsDraggable_Horizontal);
     numTrackGroupsSlider->setTextBoxStyle (Slider::TextBoxRight, false, 30, 20);
@@ -484,7 +484,6 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
 
 void MainWindow::sliderValueChanged (Slider* sliderThatWasMoved)
 {
-    std::cout << "reaching this" << std::endl;
     if (sliderThatWasMoved == intensityScalingConstantSlider)
     {
         visualizer->setIntensityScalingConstant(intensityScalingConstantSlider->getValue());
@@ -509,9 +508,9 @@ void MainWindow::sliderValueChanged (Slider* sliderThatWasMoved)
     {
         // have to clear the track groups before changing the number of group containers
         // otherwise the groups will get muddled when TrackBoxes are added back to groups
-        //visualizer->clearTrackGroups();
-        //trackSelector->changeNTrackGroupContainers((int) numTrackGroupsSlider->getValue() + 1);
-        //visualizer->changeNTrackGroups((int) numTrackGroupsSlider->getValue());
+        visualizer->clearTrackGroups();
+        trackSelector->changeNTrackGroupContainers((int) numTrackGroupsSlider->getValue() + 1);
+        visualizer->changeNTrackGroups((int) numTrackGroupsSlider->getValue());
     }
 }
 //[/MiscUserCode]

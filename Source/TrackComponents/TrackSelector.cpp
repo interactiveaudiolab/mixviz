@@ -193,12 +193,13 @@ void TrackSelector::makeTrackBoxes()
     {
         // add new track to the trackBoxes array
         // by default it is in group nTrackGroups (no group) and has a dark grey colour
-        trackBoxes.add(new TrackBox(trackNames[i], Colours::grey.darker(), i, nTrackGroups));
+        trackBoxes.add(new TrackBox(trackNames[i], Colours::grey.brighter(), i, nTrackGroups-1));
 
         // make the new TrackBox component visible
         addAndMakeVisible(trackBoxes[i]);
 
         // for the first nTrackGroups-1 tracks added, we want to put them into a track group
+        // nVisualizedTrackGroups
         if (i < nTrackGroups-1)
         {
             trackGroupContainers[i]->addTrackToGroup(i);
@@ -208,7 +209,7 @@ void TrackSelector::makeTrackBoxes()
         // for the other track boxes, put them in the unvisualized track group
         else
         {
-            int xOffset = (i - nTrackGroups) * (trackBoxWidth + spacing);
+            int xOffset = (i - nTrackGroups + 1) * (trackBoxWidth + spacing);
             trackBoxes[i]->setTopLeftPosition(trackGroupContainers[nTrackGroups-1]->getPosition().translated(xOffset, 0));
         }
     }

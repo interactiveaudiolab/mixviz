@@ -80,8 +80,8 @@ void Visualizer::changeNTrackGroups(int newNTrackGroups)
 
     model->reset();
     audioInputBank->resize(2 * nTrackGroups);
-    std::cout << "get input n tracks" << audioInputBank->getNTracks() << std::endl;
     model->initialize(*audioInputBank);
+    std::cout << "get input n tracks" << audioInputBank->getNTracks() << std::endl;
 
     output.resize(2 * nTrackGroups);
     for (int track = 0; track < 2 * nTrackGroups; track++)
@@ -144,8 +144,8 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
             // copy input L and R channel data into our input sample buffer
             for (int i = 0; i < numSamples; ++i)
             {
-                audioInputBank->sumSample(2*groupIndex, 0, i, (double) inputChannelData[targetIOIndex*2][i]); // right
-                audioInputBank->sumSample(2*groupIndex+1, 0, i, (double) inputChannelData[targetIOIndex*2+1][i]); // left
+                audioInputBank->sumSample(2*groupIndex, 0, i, (double) inputChannelData[targetIOIndex*2+1][i]); // right
+                audioInputBank->sumSample(2*groupIndex+1, 0, i, (double) inputChannelData[targetIOIndex*2][i]); // left
             }
         }
     }
