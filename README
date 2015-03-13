@@ -35,9 +35,14 @@ INSTALLATION
 4. The executable MixVis should now be in Builds/Linux/build
 
 
+SETTING UP THE VISUALIZER
+====================
+1. Start jackd (the jackd server)
+2. Start up the visualizer (./Builds/Linux/build/Mixvis). You probably have to start it from a folder containing "gammatone_filter.txt" and "cutoff_freqs.txt". 
+3. Start up your third party audio application. I have been using Ardour which seems to play very nicely with Jack.
+4. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK". In_1 of MixVisJack corresponds to the right channel of your first track, In_2 corresponds to the left channel of the first track and so on. Currently up to EIGHT stereo tracks are supported. The names of the output sockets in the patchbay will be pulled into MixViz when the Load Tracks Button is used to load a file, so name them appropriately. The names of the input sockets MUST BE LEFT AS THE DEFAULT 'Input Socket n' (this will be fixed in a later release). After you've created the patchbay definition, save it and you can load the names within MixViz by using the Load Tracks Button. In order to use with mono tracks, set your mono tracks to have stereo output in your third party application.
+
 USING THE VISUALIZER
 ====================
-1. Start up the visualizer (./Builds/Linux/build/Mixvis). You probably have to start it from a folder containing "gammatone_filter.txt" and "cutoff_freqs.txt". 
-2. Start up your third party audio application. I have been using Ardour which seems to play very nicely with Jack.
-3. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK". In_1 of MixVisJack corresponds to the right channel of your first track, In_2 corresponds to the left channel of the first track and so on. Currently up to FOUR stereo tracks are supported. In order to use with mono tracks, set your mono tracks to have stereo output in your third party application.
-4. Play audio through your third party application and it should be visualized!
+Use the Load Tracks Button and select the .xml file generated when you saved the Jack patchbay definition to load tracks into MixViz. Move tracks around to different groups as desired. Play audio through your third party application and it should be visualized. White areas represent potential problem areas, or masking. Adjust slider settings as desired, their effects are displayed in tooltips if you hover over the slider label. Currently changing the number of track groups from 4 is not
+supported.
