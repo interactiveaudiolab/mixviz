@@ -24,11 +24,11 @@ using namespace std;
 Visualizer::Visualizer()
     : nTrackGroups(4),
       nSpatialBins(128),
-      intensityScalingConstant(5000.0f),
-      intensityCutoffConstant(10.0f),
-      timeDecayConstant(0.50),
-      maskingTimeDecayConstant(0.90),
-      maskingThreshold(2),
+      intensityScalingConstant(18000.0f),
+      intensityCutoffConstant(6000.0f),
+      timeDecayConstant(0.85),
+      maskingTimeDecayConstant(0.60),
+      maskingThreshold(1),
       detectionMode(false)
 {
     setOpaque(true);
@@ -181,7 +181,7 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 
                 // detect masking
                 // loudness - partial loudness
-                if (log(integratedLoudnessOutput->getSample(track, freq, 1)) - log(integratedLoudnessOutput->getSample(track, freq, 4)) > maskingThreshold)
+                if (log(integratedLoudnessOutput->getSample(track, freq, 0)) - log(integratedLoudnessOutput->getSample(track, freq, 3)) > maskingThreshold)
                 {
                     output[track+nTrackGroups][freq][spatialBin] += intensity;
                 }
@@ -303,7 +303,7 @@ void Visualizer::paint (Graphics& g)
     // draw text and tick marks for labeling the graph
     g.drawText ("Spatial Position", 
                 Rectangle<float>(winWidth / 2.0f + leftBorder - 40.0f,
-                                                    winHeight + bottomBorder / 3.0f + topBorder,
+                                                    winHeight + bottomBorder / 2.0f + topBorder,
                                                     100.0f,
                                                     10.0f),
                 Justification(1),
@@ -340,14 +340,13 @@ void Visualizer::paint (Graphics& g)
     // R100
     g.fillRect (Rectangle<float>(leftBorder + winWidth, winHeight + topBorder, 1.0f, tickHeight));
     g.drawText ("R100",
-                Rectangle<float>(leftBorder + winWidth - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
+                Rectangle<float>(leftBorder + winWidth - textOffset - 15.0f, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     
     // draw cutoff frequency lines
     // first draw the 0 
-    g.drawFittedText ("Frequency (Hz)", Rectangle<int>(0,(int)(winHeight / 2.0f + topBorder), (int)(leftBorder/2.0f), (int)(winHeight/3.0f)), Justification(1), 10);
     const float tickX = leftBorder - tickHeight;
     const float txtX = tickX - textWidth;
     g.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
@@ -367,6 +366,8 @@ void Visualizer::paint (Graphics& g)
                     Justification(12),
                     true);
     }
+    g.addTransform(AffineTransform().rotated(-3.1415/2, 0, winHeight / 2.0f + topBorder));
+    g.drawFittedText ("Frequency (Hz)", Rectangle<int>(-10,(int)(winHeight / 2.0f + topBorder) - 65, (int)(leftBorder), (int)(winHeight/3.0f)), Justification(1), 10);
     
 }
 

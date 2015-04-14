@@ -181,11 +181,11 @@ void TrackSelector::makeTrackBoxes()
     trackBoxes.clear();
 
     // calculate trackbox spacing
-    const int spacing = 5;
-    const int trackBoxHeight = 30;
+    const int spacing = 10;
+    const int trackBoxHeight = 40;
     const int width = getWidth();
     const int height = getHeight();
-    const int trackBoxWidth = 50;
+    const int trackBoxWidth = 75;
 
     int nTracks = trackNames.size();
     // note that the index in the trackBoxes array is the same as the io port for the track

@@ -59,7 +59,7 @@ public:
 
 
 private:
-    //[UserVariables]   -- You can add your own custom variables in this section.
+    //[UserVariables]   -- You can add your own custom variables in this section.'
     Point<int> startingDragPositionRelativeToSelf;
     Colour trackColour;
     String trackName;

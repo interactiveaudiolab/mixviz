@@ -38,7 +38,7 @@ TrackBox::TrackBox (String trackName_, Colour trackColour_, int trackIndex_, int
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (50, 20);
+    setSize (75, 40);
 
 
     //[Constructor] You can add your own custom stuff here..
@@ -69,6 +69,7 @@ void TrackBox::paint (Graphics& g)
     //[UserPaint] Add your own custom painting code here..
     g.fillAll(trackColour);
     g.setColour(Colours::black);
+    g.setFont(5*getHeight()/12);
     g.drawText(trackName, Rectangle<int>(0, 0, getWidth(), getHeight()), Justification(4), true);
     //[/UserPaint]
 }
@@ -150,7 +151,7 @@ BEGIN_JUCER_METADATA
                  parentClasses="public Component" constructorParams="String trackName_, Colour trackColour_, int trackIndex_, int trackGroupIndex_"
                  variableInitialisers="trackName(trackName_),&#10;trackColour(trackColour_),&#10;trackIndex(trackIndex_),&#10;trackGroupIndex(trackGroupIndex_)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="50" initialHeight="20">
+                 fixedSize="0" initialWidth="75" initialHeight="40">
   <METHODS>
     <METHOD name="mouseEnter (const MouseEvent&amp; e)"/>
     <METHOD name="mouseExit (const MouseEvent&amp; e)"/>

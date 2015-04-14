@@ -315,64 +315,64 @@ MainWindow::MainWindow ()
     addAndMakeVisible (intensityScalingConstantSlider = new Slider());
     addAndMakeVisible (intensityScalingConstantLabel = new Label(String("isc"), String("Intensity Scaling Constant")));
     intensityScalingConstantSlider->setSliderStyle (Slider::LinearBar);
-    intensityScalingConstantSlider->setRange (1, 15000);
-    intensityScalingConstantSlider->setValue (5000);
+    intensityScalingConstantSlider->setRange (0.00000001, 35000);
+    intensityScalingConstantSlider->setValue (18000);
     intensityScalingConstantSlider->addListener (this);
-    intensityScalingConstantSlider->setBounds(705,35,90,30);
-    intensityScalingConstantSlider->setTooltip("Increase this parameter in order to "
-                                                "decrease the 'sensitivity' of the visualization to "
-                                                "loudness and cause a color that would have been more "
-                                                "intense to be less intense.");
-    intensityScalingConstantLabel->attachToComponent(intensityScalingConstantSlider, false);
+    intensityScalingConstantSlider->setBounds(705,45,90,40);
+    intensityScalingConstantLabel->setBounds(705, 5, 90, 40);
+    intensityScalingConstantLabel->setTooltip("Increase this parameter in order to "
+                                              "decrease the 'sensitivity' of the visualization to "
+                                              "loudness and cause a color that would have been more "
+                                              "intense to be less intense.");
 
     addAndMakeVisible (intensityCutoffConstantSlider = new Slider());
     addAndMakeVisible (intensityCutoffConstantLabel = new Label(String("icc"), String("Intensity Cutoff Constant")));
     intensityCutoffConstantSlider->setSliderStyle (Slider::LinearBar);
-    intensityCutoffConstantSlider->setRange (1, 50);
-    intensityCutoffConstantSlider->setValue (10);
+    intensityCutoffConstantSlider->setRange (0, 35000);
+    intensityCutoffConstantSlider->setValue (6000);
     intensityCutoffConstantSlider->addListener (this);
-    intensityCutoffConstantSlider->setBounds(705,135,90,30);
-    intensityCutoffConstantSlider->setTooltip("The Intensity Cutoff Constant represents the minimum specific loudness "
-                                               "that a sound must have in order to be visualized at all. "
-                                               "Increase this constant to descrease the amount of 'noise' "
-                                               "that is displayed.");
-    intensityCutoffConstantLabel->attachToComponent(intensityCutoffConstantSlider, false);
+    intensityCutoffConstantSlider->setBounds(705,145,90,40);
+    intensityCutoffConstantLabel->setBounds(705, 105, 90, 40);
+    intensityCutoffConstantLabel->setTooltip("The Intensity Cutoff Constant represents the minimum specific loudness "
+                                             "that a sound must have in order to be visualized at all. "
+                                             "Increase this constant to descrease the amount of 'noise' "
+                                             "that is displayed.");
 
     addAndMakeVisible (timeDecayConstantSlider = new Slider());
     addAndMakeVisible (timeDecayConstantLabel = new Label(String("tdc"), String("Time Decay Constant")));
     timeDecayConstantSlider->setSliderStyle (Slider::LinearBar);
     timeDecayConstantSlider->setRange (0, 0.99);
-    timeDecayConstantSlider->setValue (0.50);
+    timeDecayConstantSlider->setValue (0.85);
     timeDecayConstantSlider->addListener (this);
-    timeDecayConstantSlider->setBounds(705,235,90,30);
-    timeDecayConstantLabel->attachToComponent(timeDecayConstantSlider, false);
-    timeDecayConstantSlider->setTooltip("The Time Decay Constant represents the amount smoothing over time "
-                                        "that the visualization will use for non-masked (non-whitened) visuals. A value of 0 means no smoothing "
-                                        "(transients appear and instantly disappear) and a value of 0.99 "
-                                        "means that visuals stick around for a while before disappearing.");
+    timeDecayConstantSlider->setBounds(705,245,90,40);
+    timeDecayConstantLabel->setBounds(705, 205, 90, 40);
+    timeDecayConstantLabel->setTooltip("The Time Decay Constant represents the amount smoothing over time "
+                                       "that the visualization will use for non-masked (non-whitened) visuals. A value of 0 means no smoothing "
+                                       "(transients appear and instantly disappear) and a value of 0.99 "
+                                       "means that visuals stick around for a while before disappearing.");
 
     addAndMakeVisible (maskingTimeDecayConstantSlider = new Slider());
     addAndMakeVisible (maskingTimeDecayConstantLabel = new Label(String("tdc"), String("Masking Time Decay Constant")));
     maskingTimeDecayConstantSlider->setSliderStyle (Slider::LinearBar);
     maskingTimeDecayConstantSlider->setRange (0, 0.99);
-    maskingTimeDecayConstantSlider->setValue (0.90);
+    maskingTimeDecayConstantSlider->setValue (0.60);
     maskingTimeDecayConstantSlider->addListener (this);
-    maskingTimeDecayConstantSlider->setBounds(705,335,90,30);
-    maskingTimeDecayConstantLabel->attachToComponent(maskingTimeDecayConstantSlider, false);
-    maskingTimeDecayConstantSlider->setTooltip("The Masking Time Decay Constant represents the amount smoothing over time "
-                                                "that the visualization will use for masked (whitened) visuals. A value of 0 means no smoothing "
-                                                "(transients appear and instantly disappear) and a value of 0.99 "
-                                                "means that detected masked locations stick around for a while before disappearing.");
+    maskingTimeDecayConstantSlider->setBounds(705,345,90,40);
+    maskingTimeDecayConstantLabel->setBounds(705, 305, 90, 40);
+    maskingTimeDecayConstantLabel->setTooltip("The Masking Time Decay Constant represents the amount smoothing over time "
+                                              "that the visualization will use for masked (whitened) visuals. A value of 0 means no smoothing "
+                                              "(transients appear and instantly disappear) and a value of 0.99 "
+                                              "means that detected masked locations stick around for a while before disappearing.");
 
     addAndMakeVisible (maskingThresholdSlider = new Slider());
     addAndMakeVisible (maskingThresholdLabel = new Label(String("mt"), String("Masking Threshold")));
     maskingThresholdSlider->setSliderStyle (Slider::LinearBar);
     maskingThresholdSlider->setRange (0.1, 6);
-    maskingThresholdSlider->setValue (2);
+    maskingThresholdSlider->setValue (1);
     maskingThresholdSlider->addListener (this);
-    maskingThresholdSlider->setBounds(705,435,90,30);
-    maskingThresholdLabel->attachToComponent(maskingThresholdSlider, false);
-    maskingThresholdSlider->setTooltip("The Masking Threshold represents the minimum threshold of "
+    maskingThresholdSlider->setBounds(705,445,90,40);
+    maskingThresholdLabel->setBounds(705, 405, 90, 40);
+    maskingThresholdLabel->setTooltip("The Masking Threshold represents the minimum threshold of "
                                         "masking that must be detected for a track group to be "
                                         "considered masked. Increase the masking threshold to "
                                         "lower the amount of masking detected on the screen.");
@@ -383,6 +383,7 @@ MainWindow::MainWindow ()
     loadTracksButton->addListener (this);
     loadTracksButton->setBounds(20, 600, 100, 20);
 
+    /*
     addAndMakeVisible (numTrackGroupsSlider = new Slider());
     addAndMakeVisible (numTrackGroupsLabel = new Label(String("tg"), String("Number of Groups")));
     numTrackGroupsSlider->setSliderStyle (Slider::IncDecButtons);
@@ -393,9 +394,10 @@ MainWindow::MainWindow ()
     numTrackGroupsSlider->addListener (this);
     numTrackGroupsSlider->setBounds(130, 600, 100, 20);
     numTrackGroupsLabel->attachToComponent(numTrackGroupsSlider, false);
-    numTrackGroupsSlider->setTooltip("The number of colored groups to display below. "
+    numTrackGroupsLabel->setTooltip("The number of colored groups to display below. "
                                       "The tracks placed in each group will be displayed "
                                       "with the same color on the visualization.");
+                                      */
 
     addAndMakeVisible (trackSelector = new TrackSelector(this));
     trackSelector->setBounds(0,620, 800, 380);
