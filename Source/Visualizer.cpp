@@ -29,7 +29,11 @@ Visualizer::Visualizer()
       timeDecayConstant(0.85),
       maskingTimeDecayConstant(0.60),
       maskingThreshold(1),
-      detectionMode(false)
+      detectionMode(false),
+      leftBorder(100.0f),
+      rightBorder(1.0f),
+      topBorder(5.0f),
+      bottomBorder(40.0f)
 {
     setOpaque(true);
     startTimer(1000/30);
@@ -48,6 +52,8 @@ Visualizer::Visualizer()
 
     nFreqBins = roexBankOutput->getNChannels();
     cutoffFreqs = roexBankOutput->getCentreFreqs();
+
+    visualizationImage = Image(Image::RGB, 700, 600, true);
     
     output.resize(2 * nTrackGroups);
     for (int track = 0; track < 2 * nTrackGroups; track++)
@@ -197,11 +203,6 @@ void Visualizer::audioDeviceIOCallback (const float** inputChannelData, int numI
 // this function is called at each timer callback,
 void Visualizer::paint (Graphics& g)
 {
-    g.fillAll (Colours::grey);
-    const float leftBorder = 100.0f;
-    const float rightBorder = 1.0f;
-    const float bottomBorder = 40.0f;
-    const float topBorder = 5.0f;
     const float height = (float) getHeight();
     const float width = (float) getWidth();
     const float winHeight = height - bottomBorder - topBorder;
@@ -214,8 +215,11 @@ void Visualizer::paint (Graphics& g)
     const float textOffset = textWidth / 2.0f;
     const float tickHeight = 5.0f;
 
-    g.setColour(Colours::black);
-    g.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, winHeight));
+    Graphics visualization (visualizationImage);
+    visualization.fillAll (Colours::grey);
+
+    visualization.setColour(Colours::black);
+    visualization.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, winHeight));
     if (detectionMode)
     {
         // only draw maskers
@@ -232,8 +236,8 @@ void Visualizer::paint (Graphics& g)
                     {
                         const float xf = (float) pos; // add 90 so all values are positive
                         const float yf = (float) freq;
-                        g.setColour(trackIntensityToColour(intensity, groupHue));
-                        g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                        visualization.setColour(trackIntensityToColour(intensity, groupHue));
+                        visualization.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
                                                 binHeight));
@@ -257,8 +261,8 @@ void Visualizer::paint (Graphics& g)
                     {
                         const float xf = (float) pos; // add 90 so all values are positive
                         const float yf = (float) freq;
-                        g.setColour(trackIntensityToColour(intensity, groupHue));
-                        g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                        visualization.setColour(trackIntensityToColour(intensity, groupHue));
+                        visualization.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
                                                 binHeight));
@@ -279,8 +283,8 @@ void Visualizer::paint (Graphics& g)
                     {
                         const float xf = (float) pos; // add 90 so all values are positive
                         const float yf = (float) freq;
-                        g.setColour(maskerIntensityToColour(intensity, groupHue));
-                        g.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
+                        visualization.setColour(maskerIntensityToColour(intensity, groupHue));
+                        visualization.fillRect(Rectangle<float>((xf + 1.0f) / maxXIndex * winWidth - binWidth + leftBorder,
                                                 ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                                 binWidth,
                                                 binHeight));
@@ -292,16 +296,16 @@ void Visualizer::paint (Graphics& g)
 
 
     // draw a line down the middle and around this box
-    g.setColour(Colours::white);
-    g.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, 1.0f)); // top line
-    g.fillRect(Rectangle<float>(leftBorder, winHeight + topBorder, winWidth, 1.0f)); // bottom line
-    g.fillRect(Rectangle<float>(leftBorder, topBorder, 1.0f, winHeight)); // left line
-    g.fillRect(Rectangle<float>(width - rightBorder, topBorder, 1.0f, winHeight)); // right line
-    g.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, topBorder, 1.0f, winHeight)); // middle line
+    visualization.setColour(Colours::white);
+    visualization.fillRect(Rectangle<float>(leftBorder, topBorder, winWidth, 1.0f)); // top line
+    visualization.fillRect(Rectangle<float>(leftBorder, winHeight + topBorder, winWidth, 1.0f)); // bottom line
+    visualization.fillRect(Rectangle<float>(leftBorder, topBorder, 1.0f, winHeight)); // left line
+    visualization.fillRect(Rectangle<float>(width - rightBorder, topBorder, 1.0f, winHeight)); // right line
+    visualization.fillRect(Rectangle<float>(winWidth / 2.0f + leftBorder, topBorder, 1.0f, winHeight)); // middle line
 
-    g.setColour(Colours::black);
+    visualization.setColour(Colours::black);
     // draw text and tick marks for labeling the graph
-    g.drawText ("Spatial Position", 
+    visualization.drawText ("Spatial Position", 
                 Rectangle<float>(winWidth / 2.0f + leftBorder - 40.0f,
                                                     winHeight + bottomBorder / 2.0f + topBorder,
                                                     100.0f,
@@ -310,36 +314,36 @@ void Visualizer::paint (Graphics& g)
                 true);
 
     // L100
-    g.fillRect (Rectangle<float>(leftBorder, winHeight + topBorder, 1.0f, tickHeight));
-    g.drawText ("L100",
+    visualization.fillRect (Rectangle<float>(leftBorder, winHeight + topBorder, 1.0f, tickHeight));
+    visualization.drawText ("L100",
                 Rectangle<float>(leftBorder - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     // L50
-    g.fillRect (Rectangle<float>(leftBorder + winWidth / 4.0f, winHeight + topBorder, 1.0f, tickHeight));
-    g.drawText ("L50",
+    visualization.fillRect (Rectangle<float>(leftBorder + winWidth / 4.0f, winHeight + topBorder, 1.0f, tickHeight));
+    visualization.drawText ("L50",
                 Rectangle<float>(leftBorder + winWidth / 4.0f - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
     
     // C
-    g.fillRect (Rectangle<float>(leftBorder + winWidth / 2.0f, winHeight + topBorder, 1.0f, tickHeight));
-    g.drawText ("C",
+    visualization.fillRect (Rectangle<float>(leftBorder + winWidth / 2.0f, winHeight + topBorder, 1.0f, tickHeight));
+    visualization.drawText ("C",
                 Rectangle<float>(leftBorder + winWidth / 2.0f - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     // R50
-    g.fillRect (Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f, winHeight + topBorder, 1.0f, tickHeight));
-    g.drawText ("R50",
+    visualization.fillRect (Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f, winHeight + topBorder, 1.0f, tickHeight));
+    visualization.drawText ("R50",
                 Rectangle<float>(leftBorder + 3.0f * winWidth / 4.0f - textOffset, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
 
     // R100
-    g.fillRect (Rectangle<float>(leftBorder + winWidth, winHeight + topBorder, 1.0f, tickHeight));
-    g.drawText ("R100",
+    visualization.fillRect (Rectangle<float>(leftBorder + winWidth, winHeight + topBorder, 1.0f, tickHeight));
+    visualization.drawText ("R100",
                 Rectangle<float>(leftBorder + winWidth - textOffset - 15.0f, winHeight + 6.0f + topBorder, textWidth, 10.0f),
                 Justification(4),
                 true);
@@ -349,16 +353,16 @@ void Visualizer::paint (Graphics& g)
     // first draw the 0 
     const float tickX = leftBorder - tickHeight;
     const float txtX = tickX - textWidth;
-    g.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
-    g.drawText ("0", Rectangle<float>(txtX, winHeight + topBorder, tickHeight, 10.0f), Justification(4), true);
+    visualization.fillRect (Rectangle<float>(tickX,  winHeight + topBorder, tickHeight, 1.0f));
+    visualization.drawText ("0", Rectangle<float>(txtX, winHeight + topBorder, tickHeight, 10.0f), Justification(4), true);
     for (int i = 0; i < nFreqBins; i += 10)
     {
         const float yf = (float) i;
-        g.fillRect (Rectangle<float>(   tickX, 
+        visualization.fillRect (Rectangle<float>(   tickX, 
                                         ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight + topBorder,
                                         tickHeight,
                                         1.0f));
-        g.drawText (String((int) cutoffFreqs[i]),
+        visualization.drawText (String((int) cutoffFreqs[i]),
                     Rectangle<float>(   txtX, 
                                         ((maxYIndex - yf) / maxYIndex) * winHeight - binHeight - 7.0f + topBorder,
                                         textWidth,
@@ -366,9 +370,10 @@ void Visualizer::paint (Graphics& g)
                     Justification(12),
                     true);
     }
-    g.addTransform(AffineTransform().rotated(-3.1415/2, 0, winHeight / 2.0f + topBorder));
-    g.drawFittedText ("Frequency (Hz)", Rectangle<int>(-10,(int)(winHeight / 2.0f + topBorder) - 65, (int)(leftBorder), (int)(winHeight/3.0f)), Justification(1), 10);
-    
+    visualization.addTransform(AffineTransform().rotated(-3.1415/2, 0, winHeight / 2.0f + topBorder));
+    visualization.drawFittedText ("Frequency (Hz)", Rectangle<int>(-10,(int)(winHeight / 2.0f + topBorder) - 65, (int)(leftBorder), (int)(winHeight/3.0f)), Justification(1), 10);
+
+    g.drawImageAt(visualizationImage, 0, 0);
 }
 
 void Visualizer::resized()

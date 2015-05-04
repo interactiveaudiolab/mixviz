@@ -59,6 +59,11 @@ private:
     std::vector <std::vector <std::vector<double>> > output; // [track][freq][pos]
     std::vector<double> cutoffFreqs;
 
+    const float leftBorder;
+    const float rightBorder;
+    const float bottomBorder;
+    const float topBorder;
+
     // "settings" constants
     int nFreqBins;
     int nSpatialBins;
@@ -74,7 +79,10 @@ private:
     // values in the array at that index represent io port numbers of tracks in the group
     Array<Array<int>> trackGroups;
     Array<float> groupHues;
-    
+
+    // visualization image (an optimization for running in a VM)
+    Image visualizationImage;
+
     // info about the audio device this component is recieving input from
     double fs;
     int bufferSize;
