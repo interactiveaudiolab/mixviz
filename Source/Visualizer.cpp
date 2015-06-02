@@ -39,35 +39,13 @@ Visualizer::Visualizer()
     startTimer(1000/30);
     setName("Music Visualizer Window");
 
-    audioInputBank = new loudness::TrackBank();
-    audioInputBank->initialize(2 * nTrackGroups, 1, 1024, 44100);
-
-    model = new loudness::DynamicPartialLoudnessGM("44100_IIR_23_freemid.npy");
-    model->initialize(*audioInputBank);
-
-    powerSpectrumOutput = model->getModuleOutput(2);
-    roexBankOutput = model->getModuleOutput(4);
-    partialLoudnessOutput = model->getModuleOutput(5);
-    integratedLoudnessOutput = model->getModuleOutput(6);
-
-    nFreqBins = roexBankOutput->getNChannels();
-    cutoffFreqs = roexBankOutput->getCentreFreqs();
-
-    visualizationImage = Image(Image::RGB, 700, 600, true);
-    
-    output.resize(2 * nTrackGroups);
-    for (int track = 0; track < 2 * nTrackGroups; track++)
-    {
-        output[track].resize(nFreqBins);
-        for (int freq = 0; freq < nFreqBins; freq++)
-            output[track][freq].assign(180, 0);
-    }
-
     for (int i =0; i < nTrackGroups; i++)
     {
         trackGroups.add(Array<int>());
         groupHues.add((float) i / (float) nTrackGroups);
     }
+
+    visualizationImage = Image(Image::RGB, 700, 600, true);
 }
 
 Visualizer::~Visualizer()
@@ -115,8 +93,34 @@ void Visualizer::audioDeviceAboutToStart (AudioIODevice* device)
     activeInputChannels = device->getActiveInputChannels();
     bufferSize = device->getCurrentBufferSizeSamples();
     numActiveChannels = activeInputChannels.countNumberOfSetBits();
-    std::cout << bufferSize << std::endl;
     fs = device->getCurrentSampleRate();
+    if (fs != 44100)
+    {
+        std::cout << "WARNING: loudness model currently configured to use 44100hz sample rate" << std::endl;
+    }
+
+    audioInputBank = new loudness::TrackBank();
+    std::cout << "bufferSize: " << bufferSize << std::endl;
+    audioInputBank->initialize(2 * nTrackGroups, 1, bufferSize, fs);
+
+    model = new loudness::DynamicPartialLoudnessGM("44100_IIR_23_freemid.npy");
+    model->initialize(*audioInputBank);
+
+    powerSpectrumOutput = model->getModuleOutput(2);
+    roexBankOutput = model->getModuleOutput(4);
+    partialLoudnessOutput = model->getModuleOutput(5);
+    integratedLoudnessOutput = model->getModuleOutput(6);
+
+    nFreqBins = roexBankOutput->getNChannels();
+    cutoffFreqs = roexBankOutput->getCentreFreqs();
+    
+    output.resize(2 * nTrackGroups);
+    for (int track = 0; track < 2 * nTrackGroups; track++)
+    {
+        output[track].resize(nFreqBins);
+        for (int freq = 0; freq < nFreqBins; freq++)
+            output[track][freq].assign(180, 0);
+    }
 }
 
 void Visualizer::audioDeviceStopped()

@@ -303,13 +303,6 @@ MainWindow::MainWindow ()
     // makes a new visualizer with default settings
     addAndMakeVisible (visualizer = new Visualizer());
     visualizer->setBounds(0,0,700,600);
-    audioIODevice->open(BigInteger(65535),BigInteger(0),44100,1024);
-    if (audioIODevice->isOpen())
-    {
-        audioIODevice->start(visualizer);
-    } else {
-        // throw an error somehow right here
-    }
 
     // add the visualizer's settings panel with sliders
     addAndMakeVisible (intensityScalingConstantSlider = new Slider());
@@ -382,6 +375,25 @@ MainWindow::MainWindow ()
     loadTracksButton->setButtonText (TRANS("Load track names"));
     loadTracksButton->addListener (this);
     loadTracksButton->setBounds(20, 600, 100, 20);
+
+    addAndMakeVisible (bufferSizeComboBox = new ComboBox());
+    addAndMakeVisible (bufferSizeLabel = new Label(String("bs"), String("Jack audio buffer size:")));
+    bufferSizeLabel->setBounds(130, 590, 150, 40);
+    bufferSizeLabel->setTooltip("Select the size of the audio buffer in your Jack device. "
+                                "You can only change this before loading in tracks via the "
+                                "load tracks button.");
+    bufferSizeComboBox->setBounds (280, 600, 80, 20);
+    bufferSizeComboBox->setEditableText (true);
+    bufferSizeComboBox->setJustificationType (Justification::centred);
+
+    bufferSizeComboBox->addItem ("128", 128);
+    bufferSizeComboBox->addItem ("256", 256);
+    bufferSizeComboBox->addItem ("512", 512);
+    bufferSizeComboBox->addItem ("1024", 1024);
+    bufferSizeComboBox->addItem ("2048", 2048);
+    bufferSizeComboBox->addItem ("4096", 4096);
+
+    bufferSizeComboBox->setSelectedId (1024);
 
     /*
     addAndMakeVisible (numTrackGroupsSlider = new Slider());
@@ -480,6 +492,15 @@ void MainWindow::buttonClicked (Button* buttonThatWasClicked)
 
             // display the tracks with these new names
             trackSelector->setTrackNames(trackNames);
+
+            // open the audio device with selected buffer size
+            audioIODevice->open(BigInteger(65535), BigInteger(0), 44100, bufferSizeComboBox->getSelectedId());
+            if (audioIODevice->isOpen())
+            {
+                audioIODevice->start(visualizer);
+            } else {
+                // throw an error somehow right here
+            }
         }
     }
 }

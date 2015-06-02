@@ -101,17 +101,13 @@ void TrackGroupContainer::addLabel(String labelText)
 
 void TrackGroupContainer::removeTrackFromGroup(int track)
 {
-    std::cout << "Removing track from group " << groupIndex << ", old size: " << tracksInGroup.size();
     tracksInGroup.removeFirstMatchingValue(track);
-    std::cout << ", new size: " << tracksInGroup.size() << std::endl;
     mainWindow->updateVisualizerTracksInGroup(groupIndex, tracksInGroup);
 }
 
 void TrackGroupContainer::addTrackToGroup(int track)
 {
-    std::cout << "Adding track to group " << groupIndex << ", old size: " << tracksInGroup.size();
     tracksInGroup.add(track);
-    std::cout << ", new size: " << tracksInGroup.size() << std::endl;
     mainWindow->updateVisualizerTracksInGroup(groupIndex, tracksInGroup);
 }
 

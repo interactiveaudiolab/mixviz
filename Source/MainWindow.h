@@ -68,8 +68,11 @@ private:
     ScopedPointer<TrackSelector> trackSelector; // track selector
     ScopedPointer<Visualizer> visualizer; // visualizer component
 
-    // settings sliders and buttons
+    // settings sliders, buttons and dropdowns
     ScopedPointer<TextButton> loadTracksButton; // load tracks button
+
+    ScopedPointer<ComboBox> bufferSizeComboBox;
+    ScopedPointer<Label> bufferSizeLabel;
 
     ScopedPointer<Slider> numTrackGroupsSlider;
     ScopedPointer<Label> numTrackGroupsLabel;
