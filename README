@@ -30,6 +30,7 @@ INSTALLATION
   - libfreetype6-dev
   - libxinerama-dev
   - libxcursor-dev
+  - freeglut3-dev
 2. Pull down the code from repository
 3. Go into the Builds/Linux directory and run "make"
 4. The executable MixVis should now be in Builds/Linux/build
@@ -44,5 +45,4 @@ SETTING UP THE VISUALIZER
 
 USING THE VISUALIZER
 ====================
-Use the Load Tracks Button and select the .xml file generated when you saved the Jack patchbay definition to load tracks into MixViz. Move tracks around to different groups as desired. Play audio through your third party application and it should be visualized. White areas represent potential problem areas, or masking. Adjust slider settings as desired, their effects are displayed in tooltips if you hover over the slider label. Currently changing the number of track groups from 4 is not
-supported.
+First, select the audio buffer size you are currently using with Jack (found in Setup->Frames/Period). Use the Load Tracks Button and select the .xml file generated when you saved the Jack patchbay definition to load tracks into MixViz. Move tracks around to different groups as desired. Play audio through your third party application and it should be visualized. White areas represent potential problem areas, or masking. Adjust slider settings as desired, their effects are displayed in tooltips if you hover over the slider label.
