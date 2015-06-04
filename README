@@ -4,24 +4,24 @@
 
 ABOUT
 ====================
-A standalone mixing visualizer. Let me know if you have suggestions for a better name please. 
-Recieves audio in via Jack server and displays it.
+MixViz is an audio production tool that help users visualize potential problem areas in an audio mix that are preventing sounds in the mix from coming through clearly.
 
-Currently only working on Linux.
+Frequently a high level goal that a user has when mixing audio is to make each sound they put into the mix sound as clear and distinct as possible in the final mix. However, when you start mixing many sounds together, they inevitably begin to interfere with each other and cause auditory masking. When two sounds contain strong energy in overlapping frequency bands, one of the sounds may become muddied or masked in those frequency ranges. This is usually undesirable in an audio mix.
+
+How does a user mixing audio identify masked frequency bands? It typically takes an expert audio engineer to find the muddied tracks and correct them. We believe that a tool should exist to make this process more intuitive, so we created MixViz.
+
+MixViz presents the user with a two-dimensional visualization where the x-axis is spatial location and the y-axis is frequency. Each sound source is assigned a color hue. All sound sources are analyzed for masking using a model of human audition and masked regions and displayed as white in the visualization.
 
 
 PREREQUISITES
 ====================
-- Linux OS
+- Linux OS (Currently only tested on Ubuntu 14.04 LTS)
+- Ardour digital audio workstation
 - JACK Audio Connection Kit (http://jackaudio.org/)
 - FFTW3 fft libraries (http://www.fftw.org/)
 - loudness modeling library (https://github.com/jondavidford/loudness)
 - Some third party DAW that is compatible with JACK (Ardour works)
-
-
-INSTALLATION
-====================
-1. Ensure all required libraries are installed. Some of the required packages for Ubuntu are listed below:
+- Various dev libraries. the required packages for Ubuntu are
   - g++
   - libjack-jackd2-dev
   - mesa-common-dev
@@ -31,17 +31,21 @@ INSTALLATION
   - libxinerama-dev
   - libxcursor-dev
   - freeglut3-dev
-2. Pull down the code from repository
-3. Go into the Builds/Linux directory and run "make"
-4. The executable MixVis should now be in Builds/Linux/build
 
 
-SETTING UP THE VISUALIZER
+INSTALLATION
 ====================
-1. Start jackd (the jackd server)
-2. Start up the visualizer (./Builds/Linux/build/Mixvis). You probably have to start it from a folder containing "gammatone_filter.txt" and "cutoff_freqs.txt". 
+1. Pull down the code from repository
+2. Go into the Builds/Linux directory and run "make"
+3. The executable MixVis should now be in Builds/Linux/build
+
+
+RUNNING THE VISUALIZER
+====================
+1. Start jackd (the jackd server) via QjackCtl
+2. Start up the visualizer (./Builds/Linux/build/Mixvis). You must be in the directory Builds/Linux so that MixViz can find the required filter files.
 3. Start up your third party audio application. I have been using Ardour which seems to play very nicely with Jack.
-4. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK". In_1 of MixVisJack corresponds to the right channel of your first track, In_2 corresponds to the left channel of the first track and so on. Currently up to EIGHT stereo tracks are supported. The names of the output sockets in the patchbay will be pulled into MixViz when the Load Tracks Button is used to load a file, so name them appropriately. The names of the input sockets MUST BE LEFT AS THE DEFAULT 'Input Socket n' (this will be fixed in a later release). After you've created the patchbay definition, save it and you can load the names within MixViz by using the Load Tracks Button. In order to use with mono tracks, set your mono tracks to have stereo output in your third party application.
+4. Make the appropriate connections via the Jack Audio Connection Kit patchbay. The outputs from your third party application should be routed to the inputs on the device "MixVisJACK". in_1 of MixVisJack corresponds track_1/audio_out 1, in_2 corresponds track_1/audio_out 2 and so on. Currently up to EIGHT stereo tracks are supported. The names of the output sockets in the patchbay will be pulled into MixViz when the Load Tracks Button is used to load a file, so name them appropriately. The names of the input sockets MUST BE LEFT AS THE DEFAULT 'Input Socket n'. After you've created the patchbay definition, save it and you can load the names within MixViz by using the Load Tracks Button. In order to use with mono tracks, set your mono tracks to have stereo output in your third party application.
 
 USING THE VISUALIZER
 ====================
