@@ -16,8 +16,8 @@ MixViz presents the user with a two-dimensional visualization where the x-axis i
 PREREQUISITES
 ====================
 - Linux OS (Currently only tested on Ubuntu 14.04 LTS)
-- Ardour digital audio workstation
-- JACK Audio Connection Kit (http://jackaudio.org/)
+- Ardour digital audio workstation (I'm using 3.5.403)
+- JACK Audio Connection Kit (http://jackaudio.org/) (I'm using 1.9.10)
 - FFTW3 fft libraries (http://www.fftw.org/)
 - loudness modeling library (https://github.com/jondavidford/loudness)
 - Some third party DAW that is compatible with JACK (Ardour works)
@@ -37,6 +37,8 @@ INSTALLATION
 ====================
 1. Pull down the code from repository
 2. Go into the Builds/Linux directory and run "make"
+  - If the project fails to compile due to a missing header, use 'apt-file search "example-header.h"' and install a dev library with the header in it via apt-get. Let me know which library you had to install.
+  - If the project fails to link due to a missing library, try doing a google search for that file and install the dev library that you find via apt-get.
 3. The executable MixVis should now be in Builds/Linux/build
 
 
